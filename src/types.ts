@@ -36,6 +36,9 @@ export interface Session {
   source: SessionSource;
 }
 
+/** A session before it is persisted (no id). The rule engine accepts both. */
+export type SessionDraft = Omit<Session, "id">;
+
 export interface FixedCommitment {
   day: Weekday;
   label: string;

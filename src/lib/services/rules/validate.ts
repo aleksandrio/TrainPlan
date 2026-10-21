@@ -1,4 +1,4 @@
-import type { GoalInput, MuscleGroup, Session, Violation, Weekday, WeekValidation } from "@/types";
+import type { GoalInput, MuscleGroup, SessionDraft, Violation, Weekday, WeekValidation } from "@/types";
 import { WEEKDAY_LABELS } from "@/types";
 import { weekLoad, weeklyLimit } from "./load";
 
@@ -9,12 +9,12 @@ export function dayBefore(day: Weekday): Weekday {
   return ((day + 6) % 7) as Weekday;
 }
 
-function activeSessions(sessions: Session[]): Session[] {
+function activeSessions<T extends SessionDraft>(sessions: T[]): T[] {
   return sessions.filter((s) => s.status !== "skipped");
 }
 
 /** Rule 1: two heavy sessions sharing a muscle group may not be on the same or adjacent days. */
-export function regenerationViolations(sessions: Session[]): Violation[] {
+export function regenerationViolations(sessions: SessionDraft[]): Violation[] {
   const heavy = activeSessions(sessions).filter((s) => s.intensity === "heavy");
   const violations: Violation[] = [];
   const seen = new Set<string>();
@@ -41,7 +41,7 @@ export function regenerationViolations(sessions: Session[]): Violation[] {
 }
 
 /** Rule 2: total weekly load must not exceed the limit for the level. */
-export function loadViolations(sessions: Session[], goal: Pick<GoalInput, "level">): Violation[] {
+export function loadViolations(sessions: SessionDraft[], goal: Pick<GoalInput, "level">): Violation[] {
   const load = weekLoad(sessions);
   const limit = weeklyLimit(goal.level);
   if (load <= limit) return [];
@@ -55,7 +55,7 @@ export function loadViolations(sessions: Session[], goal: Pick<GoalInput, "level
 }
 
 /** Rule 3: the day before the fixed commitment must be light or rest. */
-export function commitmentViolations(sessions: Session[], goal: Pick<GoalInput, "fixedCommitment">): Violation[] {
+export function commitmentViolations(sessions: SessionDraft[], goal: Pick<GoalInput, "fixedCommitment">): Violation[] {
   const commitment = goal.fixedCommitment;
   if (!commitment) return [];
   const eve = dayBefore(commitment.day);
@@ -67,7 +67,10 @@ export function commitmentViolations(sessions: Session[], goal: Pick<GoalInput, 
   }));
 }
 
-export function validateWeek(sessions: Session[], goal: Pick<GoalInput, "level" | "fixedCommitment">): WeekValidation {
+export function validateWeek(
+  sessions: SessionDraft[],
+  goal: Pick<GoalInput, "level" | "fixedCommitment">,
+): WeekValidation {
   const violations = [
     ...regenerationViolations(sessions),
     ...loadViolations(sessions, goal),
