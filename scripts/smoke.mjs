@@ -41,7 +41,7 @@ const steps = [
   [
     "signup creates account",
     () => request("/api/auth/signup", { method: "POST", form: { email, password } }),
-    { status: 302, location: "/auth/confirm-email" },
+    { status: 302, location: "/app/goal" },
   ],
   [
     "signin rejects wrong password",
@@ -51,11 +51,14 @@ const steps = [
   [
     "signin accepts correct password",
     () => request("/api/auth/signin", { method: "POST", form: { email, password } }),
-    { status: 302, location: "/" },
+    { status: 302, location: "/app" },
   ],
   ["dashboard renders for signed-in user", () => request("/dashboard"), { status: 200 }],
+  ["week page renders for signed-in user", () => request("/app"), { status: 200 }],
+  ["api without goal returns 400", () => request("/api/plan/generate", { method: "POST" }), { status: 400 }],
   ["signout clears session", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
   ["dashboard redirects after signout", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
+  ["api rejects anonymous user", () => request("/api/plan"), { status: 401 }],
 ];
 
 let failed = 0;
