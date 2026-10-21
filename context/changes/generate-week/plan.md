@@ -69,14 +69,14 @@ Rule engine (F-02), repositories (F-01) and the goal form (S-01) exist. No LLM c
 
 #### Automated
 
-- [ ] 1.1 `npm run test` passes including template planner tests
-- [ ] 1.2 `npx astro check` and `npm run lint` pass
+- [x] 1.1 `npm run test` passes including template planner tests — 4fcdbd6
+- [x] 1.2 `npx astro check` and `npm run lint` pass — 4fcdbd6
 
 ### Phase 2: API route and week UI
 
 #### Automated
 
-- [ ] 2.1 `npm run build` passes
+- [x] 2.1 `npm run build` passes — 77d5b74
 
 #### Manual
 

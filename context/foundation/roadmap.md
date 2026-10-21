@@ -39,15 +39,15 @@ Planning a sensible training week by hand is slow and error-prone: the same musc
 
 | ID   | Change ID            | Outcome (user can …)                                            | Prerequisites | PRD refs                     | Status   |
 | ---- | -------------------- | --------------------------------------------------------------- | ------------- | ---------------------------- | -------- |
-| F-01 | data-model-rls       | (foundation) goals/plans/sessions tables with RLS and types     | —             | Access Control, NFR-3        | ready    |
-| F-02 | rule-engine          | (foundation) pure rule engine: load, validation, re-planning    | —             | Business Logic, FR-008/009   | ready    |
-| S-01 | goal-form            | create and edit their training goal                             | F-01          | FR-003, US-04                | proposed |
-| S-02 | generate-week        | generate a validated weekly plan with one action and see it     | S-01, F-02    | FR-004, FR-005, FR-008, US-01, NFR-1, NFR-5 | proposed |
-| S-03 | session-tracking     | mark sessions done/skipped and accept a re-planned week         | S-02          | FR-007, FR-009, US-02        | proposed |
-| S-04 | session-crud         | edit, add and delete sessions with inline violations            | S-02          | FR-010, FR-011, US-03        | proposed |
-| S-05 | regenerate-week      | regenerate the remaining week keeping done sessions             | S-03          | FR-006                       | proposed |
+| F-01 | data-model-rls       | (foundation) goals/plans/sessions tables with RLS and types     | —             | Access Control, NFR-3        | in-progress    |
+| F-02 | rule-engine          | (foundation) pure rule engine: load, validation, re-planning    | —             | Business Logic, FR-008/009   | in-progress    |
+| S-01 | goal-form            | create and edit their training goal                             | F-01          | FR-003, US-04                | in-progress |
+| S-02 | generate-week        | generate a validated weekly plan with one action and see it     | S-01, F-02    | FR-004, FR-005, FR-008, US-01, NFR-1, NFR-5 | in-progress |
+| S-03 | session-tracking     | mark sessions done/skipped and accept a re-planned week         | S-02          | FR-007, FR-009, US-02        | in-progress |
+| S-04 | session-crud         | edit, add and delete sessions with inline violations            | S-02          | FR-010, FR-011, US-03        | in-progress |
+| S-05 | regenerate-week      | regenerate the remaining week keeping done sessions             | S-03          | FR-006                       | in-progress |
 | F-03 | deploy-production    | (foundation) app live on a public URL with secrets configured   | S-02          | infrastructure.md            | proposed |
-| S-06 | week-history         | see past weeks with done/skipped counts (nice-to-have)          | S-03          | FR-012                       | proposed |
+| S-06 | week-history         | see past weeks with done/skipped counts (nice-to-have)          | S-03          | FR-012                       | in-progress |
 
 ## Streams
 
