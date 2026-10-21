@@ -123,9 +123,9 @@ Timeline: 2 weeks of after-hours work (hard deadline 2026-11-04). The flow is wi
 
 ### US-02: User skips a session and gets a re-planned week
 
-- **Given** a valid weekly plan with a heavy legs session on Tuesday and a heavy legs session on Friday
-- **When** the user marks Tuesday as skipped and accepts re-planning
-- **Then** the remaining days are re-planned so that the week still respects all rules, and the change summary names what moved and why
+- **Given** a valid weekly plan with a heavy legs session on Thursday and a heavy legs session on Saturday
+- **When** the user marks Thursday as skipped and accepts re-planning
+- **Then** the remaining days are re-planned so that the week still respects all rules, and the change summary names what moved (or was dropped) and why
 
 #### Acceptance Criteria
 - Sessions already marked done are not changed
