@@ -1,55 +1,38 @@
-# Rules for AI
+# Repository Guidelines
 
-This file provides guidance to AI Agent when working with code in this repository.
+TrainPlan is a web app that turns one goal form into a validated weekly training plan and re-plans the week when a session is skipped. Stack: Astro 7 SSR + React 19 islands + TypeScript + Tailwind 4 + Supabase (auth, Postgres, RLS) + Cloudflare Workers. Product contract: @context/foundation/prd.md. Stack decision: @context/foundation/tech-stack.md.
+
+## Hard rules
+
+- Every table in `supabase/migrations/` has RLS enabled with per-operation policies scoped to `auth.uid()`. A user must never read or write another user's rows (PRD guardrail).
+- The rule engine in `src/lib/services/rules/` is pure TypeScript with no I/O and no LLM calls; it is the only place that decides plan validity, load and re-planning. API routes call it, they never re-implement it.
+- LLM output is untrusted input: parse it with a zod schema, then validate with the rule engine before persisting or showing it.
+- Secrets (`SUPABASE_URL`, `SUPABASE_KEY`, `OPENROUTER_API_KEY`) live only in `.env` / `.dev.vars` / Cloudflare secrets, declared in `astro.config.mjs` `env.schema`. Never commit them, never read them client-side.
+- API routes export `const prerender = false` and validate request bodies with zod before touching Supabase.
+- Do not edit `context/archive/`. Foundation docs in `context/foundation/` are edited in place, never duplicated with dates.
+
+## Project structure
+
+- `src/pages/` Astro pages, `src/pages/api/` endpoints (uppercase `GET`/`POST` exports).
+- `src/components/` Astro for static UI, React (`.tsx`) only for interactive islands; shadcn/ui primitives in `src/components/ui/` (`npx shadcn@latest add <name>`); hooks in `src/components/hooks/`.
+- `src/lib/` helpers and services; `src/lib/supabase.ts` SSR client; `src/middleware.ts` resolves `locals.user` and protects routes listed in `PROTECTED_ROUTES`.
+- `src/types.ts` shared entities and DTOs. `supabase/migrations/` SQL named `YYYYMMDDHHmmss_description.sql`.
+- `context/` is the system of record for product and change docs (10x workflow: `foundation/` living docs, `changes/<id>/` per change, `archive/` immutable).
 
 ## Commands
 
-- `npm run dev` — start dev server (Cloudflare workerd runtime)
-- `npm run build` — production build (SSR via `@astrojs/cloudflare`)
-- `npm run preview` — preview production build
-- `npm run lint` — ESLint with type-checked rules
-- `npm run lint:fix` — auto-fix lint issues
-- `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
-- `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase.
+- `npm run dev` dev server on the Cloudflare runtime; `npm run build` production build; `npm run preview` serve the build.
+- `npm run lint` / `npm run lint:fix` ESLint (type-checked, React, Astro, a11y, Prettier); `npm run format` Prettier.
+- `npm run test` Vitest unit tests (rule engine first); `npm run test:e2e` Playwright against a running dev server.
+- `npx supabase start` local stack (Docker) or point `.env` at a hosted project; `npx wrangler deploy` to publish.
 
-Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
+## Style and testing
 
-## Architecture
+- Path alias `@/*` → `src/*`. Merge Tailwind classes with `cn()` from `@/lib/utils`, never by string concatenation. No Next.js directives.
+- Unit tests live next to the code as `*.test.ts`; E2E specs in `e2e/`. Test the rule engine with explicit week fixtures, assert on named violations, not on snapshot text.
+- Husky + lint-staged run `eslint --fix` and `prettier --write` on commit.
 
-**Astro 7 SSR app** with React 19 islands, Tailwind 4, Supabase auth, and shadcn/ui components. Deployed to Cloudflare Workers.
+## Commits and CI
 
-### Rendering mode
-
-Full server-side rendering (`output: "server"` in astro.config.mjs). All pages are server-rendered by default. API routes must export `const prerender = false`.
-
-### Auth flow
-
-- `src/lib/supabase.ts` — creates a Supabase SSR client using `@supabase/ssr` with cookie-based sessions. Uses `astro:env/server` for `SUPABASE_URL` and `SUPABASE_KEY` (server-only secrets declared in astro.config.mjs `env.schema`).
-- `src/middleware.ts` — runs on every request, resolves the current user, attaches to `context.locals.user`. Redirects unauthenticated users away from routes listed in `PROTECTED_ROUTES`.
-- API endpoints: `src/pages/api/auth/{signin,signup,signout}.ts`
-- Auth pages: `src/pages/auth/{signin,signup,confirm-email}.astro`
-- Protected page example: `src/pages/dashboard.astro`
-
-### Key conventions
-
-- **Path alias**: `@/*` maps to `./src/*` (tsconfig paths).
-- **Astro components** for static content/layout; **React components** only when interactivity is needed.
-- **Tailwind class merging**: use the `cn()` helper from `@/lib/utils` (clsx + tailwind-merge) for conditional/merged class names. Do not concatenate class strings manually.
-- **shadcn/ui**: components live in `src/components/ui/`, "new-york" style variant. Install new ones with `npx shadcn@latest add [name]`.
-- **API routes**: use uppercase `GET`, `POST` exports; validate input with zod.
-- **Supabase migrations**: `supabase/migrations/` using naming format `YYYYMMDDHHmmss_short_description.sql`. Always enable RLS on new tables with granular per-operation, per-role policies.
-- **React**: no Next.js directives ("use client" etc.). Extract hooks to `src/components/hooks/`.
-- **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
-- **Shared types** (entities, DTOs) go in `src/types.ts`.
-
-### Environment
-
-- Node.js v22.14.0 (see `.nvmrc`)
-- Env vars: `SUPABASE_URL`, `SUPABASE_KEY` (copy `.env.example` to `.env` for Node, or `.dev.vars` for Cloudflare local dev)
-- Local Supabase: `npx supabase start` (requires Docker)
-- Cloudflare local dev: secrets go in `.dev.vars` (gitignored)
-- Deploy: `npx wrangler deploy` (requires Cloudflare account + `wrangler` auth)
-
-## CI
-
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every push and PR to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
+- Conventional Commits (`feat:`, `fix:`, `chore:`, `test:`, `docs:`), one change folder per feature under `context/changes/`.
+- GitHub Actions (`.github/workflows/ci.yml`) runs lint, `astro check`, build and the auth smoke test on push and PR to `master`; the build job needs `SUPABASE_URL` and `SUPABASE_KEY` repository secrets.
