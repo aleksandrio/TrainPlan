@@ -32,7 +32,9 @@ test("anonymous visitor is redirected to sign-in", async ({ page }) => {
   await expect(page).toHaveURL(/\/auth\/signin/);
 });
 
-test("user generates a valid week, skips a session and gets a re-plan, then edits into a violation", async ({ page }) => {
+test("user generates a valid week, skips a session and gets a re-plan, then edits into a violation", async ({
+  page,
+}) => {
   await signUp(page);
   await saveGoal(page);
 
