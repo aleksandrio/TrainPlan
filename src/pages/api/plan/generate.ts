@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { generateWeek } from "@/lib/services/generation";
-import { savePlan } from "@/lib/services/plans";
+import { GENERATIONS_PER_DAY, reserveGeneration, savePlan } from "@/lib/services/plans";
 import { loadWeek } from "@/lib/services/week";
 import { llmConfig } from "@/lib/llm-config";
 import { generateRequestSchema, json, jsonError } from "@/lib/validation";
@@ -26,6 +26,15 @@ export const POST: APIRoute = async ({ locals, request }) => {
   if (!state.goal) return jsonError("Save your goal first", 400);
 
   const keep = parsed.data.keepDone && state.plan ? state.plan.sessions.filter((s) => s.status === "done") : [];
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const quota = await reserveGeneration(supabase, user.id, state.goal.id, state.weekStart, todayIso);
+  if (!quota.allowed) {
+    return jsonError(
+      `Daily generation limit reached (${GENERATIONS_PER_DAY} per day). Edit the week by hand or try tomorrow.`,
+      429,
+    );
+  }
 
   try {
     const result = await generateWeek(state.goal, { llm: llmConfig(), keep });

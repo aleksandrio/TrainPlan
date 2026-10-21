@@ -71,6 +71,50 @@ export async function savePlan(
   return saved;
 }
 
+export const GENERATIONS_PER_DAY = 10;
+
+/**
+ * Count a generation attempt for the week's plan row (creating it if needed).
+ * Returns the number of generations already used today; the caller rejects when it reaches the limit.
+ */
+export async function reserveGeneration(
+  supabase: TypedSupabase,
+  userId: string,
+  goalId: string,
+  weekStart: string,
+  today: string,
+): Promise<{ allowed: boolean; used: number }> {
+  const { data: plan, error } = await supabase
+    .from("plans")
+    .upsert(
+      { user_id: userId, goal_id: goalId, week_start: weekStart },
+      { onConflict: "user_id,week_start", ignoreDuplicates: true },
+    )
+    .select("id, generation_count, generation_day")
+    .maybeSingle();
+  if (error) throw new Error(`reserveGeneration: ${error.message}`);
+  let row = plan;
+  if (!row) {
+    const { data, error: selErr } = await supabase
+      .from("plans")
+      .select("id, generation_count, generation_day")
+      .eq("user_id", userId)
+      .eq("week_start", weekStart)
+      .single();
+    if (selErr) throw new Error(`reserveGeneration select: ${selErr.message}`);
+    row = data;
+  }
+  const used = row.generation_day === today ? row.generation_count : 0;
+  if (used >= GENERATIONS_PER_DAY) return { allowed: false, used };
+  const { error: updErr } = await supabase
+    .from("plans")
+    .update({ generation_count: used + 1, generation_day: today })
+    .eq("id", row.id)
+    .eq("user_id", userId);
+  if (updErr) throw new Error(`reserveGeneration update: ${updErr.message}`);
+  return { allowed: true, used: used + 1 };
+}
+
 export async function setPlanValid(
   supabase: TypedSupabase,
   userId: string,

@@ -23,6 +23,8 @@ export type PlanRow = {
   goal_id: string;
   week_start: string;
   valid: boolean;
+  generation_count: number;
+  generation_day: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -60,7 +62,7 @@ export type Database = {
       };
       plans: {
         Row: PlanRow;
-        Insert: Insert<PlanRow, "id" | "created_at" | "updated_at" | "valid">;
+        Insert: Insert<PlanRow, "id" | "created_at" | "updated_at" | "valid" | "generation_count" | "generation_day">;
         Update: Partial<PlanRow>;
         Relationships: [];
       };

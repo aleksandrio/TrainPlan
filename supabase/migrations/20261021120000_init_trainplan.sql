@@ -44,6 +44,8 @@ create table public.plans (
   goal_id uuid not null references public.goals (id) on delete cascade,
   week_start date not null,
   valid boolean not null default false,
+  generation_count integer not null default 0,
+  generation_day date,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint plans_one_per_week unique (user_id, week_start)
