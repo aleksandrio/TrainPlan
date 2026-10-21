@@ -1,0 +1,35 @@
+---
+import AppLayout from "@/layouts/AppLayout.astro";
+import WeekPlanner from "@/components/plan/WeekPlanner";
+import { loadWeek } from "@/lib/services/week";
+
+const { supabase, user } = Astro.locals;
+const state = supabase && user ? await loadWeek(supabase, user.id) : null;
+---
+
+<AppLayout title="Your week" active="week">
+  {state?.goal ? (
+    <WeekPlanner
+      goal={state.goal}
+      plan={state.plan}
+      validation={state.validation}
+      weekStart={state.weekStart}
+      today={state.today}
+      client:load
+    />
+  ) : (
+    <section class="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/10 p-8 text-center backdrop-blur-xl">
+      <h1 class="mb-2 text-2xl font-bold">Start with your goal</h1>
+      <p class="mb-6 text-blue-100/70">
+        Tell TrainPlan what you train for, which days you have and your fixed activity. One form, then one click.
+      </p>
+      <a
+        href="/app/goal"
+        class="inline-block rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-5 py-2 font-medium shadow transition hover:opacity-90"
+        data-testid="set-goal-link"
+      >
+        Set my goal
+      </a>
+    </section>
+  )}
+</AppLayout>

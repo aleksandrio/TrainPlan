@@ -10,10 +10,15 @@ export const POST: APIRoute = async (context) => {
   if (!supabase) {
     return context.redirect(`/auth/signup?error=${encodeURIComponent("Supabase is not configured")}`);
   }
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({ email, password });
 
   if (error) {
     return context.redirect(`/auth/signup?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // With email confirmation disabled Supabase returns a session right away: go straight to the app.
+  if (data.session) {
+    return context.redirect("/app/goal");
   }
 
   return context.redirect("/auth/confirm-email");

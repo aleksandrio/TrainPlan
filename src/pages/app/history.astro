@@ -1,0 +1,35 @@
+---
+import AppLayout from "@/layouts/AppLayout.astro";
+import { listPlans } from "@/lib/services/plans";
+
+const { supabase, user } = Astro.locals;
+const plans = supabase && user ? await listPlans(supabase, user.id) : [];
+---
+
+<AppLayout title="History" active="history">
+  <section class="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
+    <h1 class="mb-4 text-2xl font-bold">Past weeks</h1>
+    {plans.length === 0 ? (
+      <p class="text-blue-100/70">No weeks yet. Generate your first week to see it here.</p>
+    ) : (
+      <ul class="divide-y divide-white/10" data-testid="history-list">
+        {plans.map((p) => {
+          const done = p.sessions.filter((s) => s.status === "done").length;
+          const skipped = p.sessions.filter((s) => s.status === "skipped").length;
+          const planned = p.sessions.length - done - skipped;
+          return (
+            <li class="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+              <span class="font-medium">Week of {p.weekStart}</span>
+              <span class="text-blue-100/70">
+                {done} done · {skipped} skipped · {planned} planned ·{" "}
+                <span class:list={p.valid ? "text-emerald-200" : "text-rose-200"}>
+                  {p.valid ? "valid" : "rule issues"}
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </section>
+</AppLayout>

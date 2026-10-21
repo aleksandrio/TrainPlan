@@ -1,0 +1,18 @@
+---
+import AppLayout from "@/layouts/AppLayout.astro";
+import GoalForm from "@/components/goal/GoalForm";
+import { getGoal } from "@/lib/services/goals";
+
+const { supabase, user } = Astro.locals;
+const goal = supabase && user ? await getGoal(supabase, user.id) : null;
+---
+
+<AppLayout title="Your goal" active="goal">
+  <section class="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl sm:p-8">
+    <h1 class="mb-1 text-2xl font-bold">{goal ? "Edit your goal" : "Set your goal"}</h1>
+    <p class="mb-6 text-sm text-blue-100/70">
+      One form. TrainPlan turns it into a week that respects regeneration, your weekly load and your fixed activity.
+    </p>
+    <GoalForm initial={goal} client:load />
+  </section>
+</AppLayout>
