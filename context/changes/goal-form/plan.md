@@ -58,14 +58,14 @@ Auth pages and `/dashboard` exist; `PROTECTED_ROUTES` redirects to `/auth/signin
 
 #### Automated
 
-- [x] 1.1 `npm run test` passes (validation schema tests) — c2d3c50
-- [x] 1.2 `npx astro check` and `npm run lint` pass — c2d3c50
+- [x] 1.1 `npm run test` passes (validation schema tests) — 6964d32
+- [x] 1.2 `npx astro check` and `npm run lint` pass — 6964d32
 
 ### Phase 2: Pages and form island
 
 #### Automated
 
-- [x] 2.1 `npm run build` passes — b54493b
+- [x] 2.1 `npm run build` passes — 5fa9ff8
 
 #### Manual
 
