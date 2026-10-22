@@ -81,3 +81,7 @@ Rule engine (F-02), repositories (F-01) and the goal form (S-01) exist. No LLM c
 #### Manual
 
 - [x] 2.2 "Generate week" shows a valid week within 20 s — e2e green on local Supabase 2026-10-22 (1.5 s, template planner)
+
+### Follow-up: tolerant LLM parsing (2026-10-22)
+
+- [x] Production fell back to the template with "LLM JSON did not match the schema". Added `src/lib/services/generation/normalize.ts`: lenient mapping of model output (day names, muscle synonyms such as chest/back, intensity words, "60 min", top-level arrays, week keyed by day) onto the domain enums before the strict zod schema; only uninterpretable sessions are dropped, `repairDraft` fills the gaps. Prompt now spells out the field rules with an example. Reason of a failure is surfaced in the note and logged (`[llm] ...`) for Cloudflare logs. Tests: `normalize.test.ts`.

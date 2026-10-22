@@ -3,6 +3,7 @@ import { WEEKDAY_LABELS } from "@/types";
 import { generatedWeekSchema } from "@/lib/validation";
 import { WEEKLY_LIMIT, INTENSITY_FACTOR } from "@/lib/services/rules";
 import type { DraftSession } from "./template";
+import { normalizeLlmWeek, type NormalizedSession } from "./normalize";
 
 export interface LlmConfig {
   apiKey: string;
@@ -36,8 +37,14 @@ Rules the week MUST satisfy:
 2. Total weekly load <= limit. Load of a session = ceil(durationMin/30) * factor, factor light=${INTENSITY_FACTOR.light}, moderate=${INTENSITY_FACTOR.moderate}, heavy=${INTENSITY_FACTOR.heavy}. Fixed commitment counts 9.
 3. The day before a fixed commitment must be light or rest.
 ${fix}
-Return ONLY JSON of this exact shape, no prose:
-{"sessions":[{"day":0-6 (0=Monday),"type":"strength|cardio|mobility|plyometrics|other","muscleGroups":["legs"|"push"|"pull"|"core"|"cardio"],"intensity":"light|moderate|heavy","durationMin":10-240,"description":"concrete exercises, sets and reps in one or two sentences"}]}`;
+Return ONLY a JSON object with a "sessions" array, no prose. Field rules:
+- "day": integer 0-6 where 0=Monday, 1=Tuesday, ... 6=Sunday (a number, not a name)
+- "type": exactly one of "strength", "cardio", "mobility", "plyometrics", "other"
+- "muscleGroups": array with 1-3 values, each exactly one of "legs", "push", "pull", "core", "cardio" (chest/shoulders/triceps = "push", back/biceps = "pull")
+- "intensity": exactly one of "light", "moderate", "heavy"
+- "durationMin": integer minutes, 10-240
+- "description": concrete exercises, sets and reps in one or two sentences
+Example: {"sessions":[{"day":1,"type":"strength","muscleGroups":["push","core"],"intensity":"moderate","durationMin":60,"description":"Bench press 4x6, overhead press 3x8, dips 3x10, plank 3x45s."}]}`;
 }
 
 export async function draftWeekWithLlm(
@@ -85,19 +92,40 @@ export async function draftWeekWithLlm(
   try {
     parsedJson = JSON.parse(jsonText);
   } catch {
+    // eslint-disable-next-line no-console
+    console.warn("[llm] invalid JSON:", text.slice(0, 300));
     throw new LlmError("LLM returned invalid JSON");
   }
-  const parsed = generatedWeekSchema.safeParse(parsedJson);
-  if (!parsed.success) throw new LlmError("LLM JSON did not match the schema");
+
+  // Strict schema first; if the model strayed from the enums, normalise synonyms and keep what is usable.
+  const strict = generatedWeekSchema.safeParse(parsedJson);
+  let sessions: NormalizedSession[];
+  if (strict.success) {
+    sessions = strict.data.sessions as NormalizedSession[];
+  } else {
+    const normalized = normalizeLlmWeek(parsedJson);
+    // eslint-disable-next-line no-console
+    if (normalized.dropped.length) console.warn("[llm] dropped sessions:", normalized.dropped.join(" | "));
+    if (normalized.sessions.length === 0) {
+      // eslint-disable-next-line no-console
+      console.warn("[llm] unusable draft:", jsonText.slice(0, 300));
+      const why =
+        (normalized.dropped as (string | undefined)[])[0] ??
+        (strict.error.issues[0] as { message: string } | undefined)?.message ??
+        "no sessions";
+      throw new LlmError(`LLM JSON did not match the schema (${why})`);
+    }
+    sessions = normalized.sessions;
+  }
 
   const lockedDays = new Set(locked.map((s) => s.day));
-  return parsed.data.sessions
-    .filter((s) => !lockedDays.has(s.day as DraftSession["day"]))
+  return sessions
+    .filter((s) => !lockedDays.has(s.day))
     .map((s) => ({
-      day: s.day as DraftSession["day"],
-      type: s.type as DraftSession["type"],
-      muscleGroups: s.muscleGroups as DraftSession["muscleGroups"],
-      intensity: s.intensity as DraftSession["intensity"],
+      day: s.day,
+      type: s.type,
+      muscleGroups: s.muscleGroups,
+      intensity: s.intensity,
       durationMin: s.durationMin,
       description: s.description,
       status: "planned" as const,
@@ -107,7 +135,11 @@ export async function draftWeekWithLlm(
 }
 
 function extractJson(text: string): string {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  return start >= 0 && end > start ? text.slice(start, end + 1) : text;
+  const cleaned = text.replace(/```(?:json)?/gi, "").trim();
+  const objStart = cleaned.indexOf("{");
+  const arrStart = cleaned.indexOf("[");
+  const startsWithArray = arrStart >= 0 && (objStart === -1 || arrStart < objStart);
+  const start = startsWithArray ? arrStart : objStart;
+  const end = startsWithArray ? cleaned.lastIndexOf("]") : cleaned.lastIndexOf("}");
+  return start >= 0 && end > start ? cleaned.slice(start, end + 1) : cleaned;
 }
