@@ -1,10 +1,10 @@
 ---
 change_id: rule-engine
 title: Rule engine: load, validation, re-planning
-status: implemented
+status: archived
 created: 2026-10-21
-updated: 2026-10-21
-archived_at: null
+updated: 2026-10-22
+archived_at: 2026-10-22T22:21:12Z
 ---
 
 ## Notes
