@@ -10,6 +10,9 @@ if [ "${1:-}" != "--skip-start" ]; then
   npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
 fi
 
+echo "▶ Applying pending migrations (no-op when the stack was started fresh)…"
+npx supabase migration up
+
 echo "▶ Writing .env and .dev.vars from supabase status…"
 npx supabase status -o env | grep -E '^(API_URL|ANON_KEY)=' > .supabase.env
 # shellcheck disable=SC1091
