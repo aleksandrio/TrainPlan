@@ -1,10 +1,10 @@
 ---
 change_id: deploy-production
 title: First production deploy
-status: implemented
+status: archived
 created: 2026-10-23
-updated: 2026-10-23
-archived_at: null
+updated: 2026-10-22
+archived_at: 2026-10-22T22:21:13Z
 ---
 
 ## Notes

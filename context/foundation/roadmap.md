@@ -46,7 +46,7 @@ Planning a sensible training week by hand is slow and error-prone: the same musc
 | S-03 | session-tracking     | mark sessions done/skipped and accept a re-planned week         | S-02          | FR-007, FR-009, US-02        | done        |
 | S-04 | session-crud         | edit, add and delete sessions with inline violations            | S-02          | FR-010, FR-011, US-03        | done        |
 | S-05 | regenerate-week      | regenerate the remaining week keeping done sessions             | S-03          | FR-006                       | done        |
-| F-03 | deploy-production    | (foundation) app live on a public URL with secrets configured   | S-02          | infrastructure.md            | in-progress |
+| F-03 | deploy-production    | (foundation) app live on a public URL with secrets configured   | S-02          | infrastructure.md            | done        |
 | S-06 | week-history         | see past weeks with done/skipped counts (nice-to-have)          | S-03          | FR-012                       | in-progress |
 
 ## Streams
@@ -111,7 +111,7 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **Blockers:** owner must create the accounts and run `wrangler login`
 - **Unknowns:** —
 - **Risk:** Deploying only at the end hides workerd-only runtime issues; deploy as soon as the north star works.
-- **Status:** proposed
+- **Status:** done
 
 ## Slices
 
@@ -224,3 +224,4 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **S-03: user can mark a session done or skipped (and undo), and after a skip receives a re-plan proposal for the remaining days with a change summary that they can accept or reject.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-tracking/`. Lesson: —.
 - **S-04: user can edit any session field, add their own session and delete sessions; the week re-validates on every change and shows violations inline.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-crud/`. Lesson: —.
 - **S-05: user can regenerate the current week; sessions already marked done are preserved and only remaining days are regenerated.** — Archived 2026-10-22 → `context/archive/2026-10-23-regenerate-week/`. Lesson: —.
+- **F-03: (foundation) the app is deployed to Cloudflare Workers with Supabase and OpenRouter secrets configured; the public URL serves sign-in and plan generation.** — Archived 2026-10-22 → `context/archive/2026-10-23-deploy-production/`. Lesson: —.
