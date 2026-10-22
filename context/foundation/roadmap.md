@@ -47,7 +47,7 @@ Planning a sensible training week by hand is slow and error-prone: the same musc
 | S-04 | session-crud         | edit, add and delete sessions with inline violations            | S-02          | FR-010, FR-011, US-03        | done        |
 | S-05 | regenerate-week      | regenerate the remaining week keeping done sessions             | S-03          | FR-006                       | done        |
 | F-03 | deploy-production    | (foundation) app live on a public URL with secrets configured   | S-02          | infrastructure.md            | done        |
-| S-06 | week-history         | see past weeks with done/skipped counts (nice-to-have)          | S-03          | FR-012                       | in-progress |
+| S-06 | week-history         | see past weeks with done/skipped counts (nice-to-have)          | S-03          | FR-012                       | done        |
 
 ## Streams
 
@@ -186,7 +186,7 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Last; cut first if time runs out.
-- **Status:** proposed
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -225,3 +225,4 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **S-04: user can edit any session field, add their own session and delete sessions; the week re-validates on every change and shows violations inline.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-crud/`. Lesson: —.
 - **S-05: user can regenerate the current week; sessions already marked done are preserved and only remaining days are regenerated.** — Archived 2026-10-22 → `context/archive/2026-10-23-regenerate-week/`. Lesson: —.
 - **F-03: (foundation) the app is deployed to Cloudflare Workers with Supabase and OpenRouter secrets configured; the public URL serves sign-in and plan generation.** — Archived 2026-10-22 → `context/archive/2026-10-23-deploy-production/`. Lesson: —.
+- **S-06: user can see a plain list of past weeks with done/skipped counts.** — Archived 2026-10-22 → `context/archive/2026-10-23-week-history/`. Lesson: —.
