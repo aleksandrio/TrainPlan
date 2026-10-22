@@ -1,10 +1,10 @@
 ---
 change_id: session-crud
 title: Edit, add and delete sessions with inline violations
-status: implemented
+status: archived
 created: 2026-10-23
-updated: 2026-10-23
-archived_at: null
+updated: 2026-10-22
+archived_at: 2026-10-22T22:21:12Z
 ---
 
 ## Notes
