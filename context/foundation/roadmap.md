@@ -45,7 +45,7 @@ Planning a sensible training week by hand is slow and error-prone: the same musc
 | S-02 | generate-week        | generate a validated weekly plan with one action and see it     | S-01, F-02    | FR-004, FR-005, FR-008, US-01, NFR-1, NFR-5 | done        |
 | S-03 | session-tracking     | mark sessions done/skipped and accept a re-planned week         | S-02          | FR-007, FR-009, US-02        | done        |
 | S-04 | session-crud         | edit, add and delete sessions with inline violations            | S-02          | FR-010, FR-011, US-03        | done        |
-| S-05 | regenerate-week      | regenerate the remaining week keeping done sessions             | S-03          | FR-006                       | in-progress |
+| S-05 | regenerate-week      | regenerate the remaining week keeping done sessions             | S-03          | FR-006                       | done        |
 | F-03 | deploy-production    | (foundation) app live on a public URL with secrets configured   | S-02          | infrastructure.md            | in-progress |
 | S-06 | week-history         | see past weeks with done/skipped counts (nice-to-have)          | S-03          | FR-012                       | in-progress |
 
@@ -174,7 +174,7 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Reuses the S-02 generation path with a "locked days" input; small slice if S-02 was built with that parameter.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Week history
 
@@ -223,3 +223,4 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **S-02: user can press "Generate week" and see a 7-day plan with one session per available day (type, muscle groups, intensity, duration, description), already validated by the rule engine and marked valid, with progress feedback and a retry on failure.** — Archived 2026-10-22 → `context/archive/2026-10-21-generate-week/`. Lesson: —.
 - **S-03: user can mark a session done or skipped (and undo), and after a skip receives a re-plan proposal for the remaining days with a change summary that they can accept or reject.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-tracking/`. Lesson: —.
 - **S-04: user can edit any session field, add their own session and delete sessions; the week re-validates on every change and shows violations inline.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-crud/`. Lesson: —.
+- **S-05: user can regenerate the current week; sessions already marked done are preserved and only remaining days are regenerated.** — Archived 2026-10-22 → `context/archive/2026-10-23-regenerate-week/`. Lesson: —.
