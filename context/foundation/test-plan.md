@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-10-21
+> Last updated: 2026-10-22
 
 ## 1. Strategy
 
@@ -46,8 +46,8 @@ Hot-spot scope used for likelihood weighting: `src/lib/services/`, `src/pages/ap
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
-| 1 | Critical-path coverage | Rule engine, generation fallback and validation schemas under unit tests | #1, #2, #4, #7 | unit | implementing | `context/changes/rule-engine/`, `context/changes/generate-week/` |
-| 2 | Critical user flow E2E | One Playwright flow: signup → goal → generate → skip + re-plan → edit into violation | #1, #2, #5 | e2e + smoke | implementing | `context/changes/generate-week/` |
+| 1 | Critical-path coverage | Rule engine, generation fallback and validation schemas under unit tests | #1, #2, #4, #7 | unit | complete | `context/changes/rule-engine/`, `context/changes/generate-week/` |
+| 2 | Critical user flow E2E | One Playwright flow: signup → goal → generate → skip + re-plan → edit into violation | #1, #2, #5 | e2e + smoke | complete | `context/changes/generate-week/` |
 | 3 | Isolation and abuse | Two-account API test proving RLS and ownership checks; generation rate limit | #3, #6 | integration + unit | not started | — |
 | 4 | Quality-gates wiring | Post-edit hook (lint + related tests) and end-of-turn gate; CI already runs lint, check, unit, smoke, e2e | cross-cutting | post-edit-hook, gates | complete | `.claude/settings.json`, `.claude/hooks/` (proved 2026-10-21: unused var blocked post-edit, type error blocked stop) |
 

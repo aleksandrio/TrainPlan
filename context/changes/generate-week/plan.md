@@ -80,4 +80,4 @@ Rule engine (F-02), repositories (F-01) and the goal form (S-01) exist. No LLM c
 
 #### Manual
 
-- [ ] 2.2 "Generate week" shows a valid week within 20 s
+- [x] 2.2 "Generate week" shows a valid week within 20 s — e2e green on local Supabase 2026-10-22 (1.5 s, template planner)

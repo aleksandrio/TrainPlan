@@ -107,7 +107,7 @@ Single migration, one week per `plans` row keyed by `(user_id, week_start)`, ses
 
 #### Manual
 
-- [ ] 1.2 Migration applied to the hosted project (owner)
+- [x] 1.2 Migration applied to the hosted project (owner) — applied to local stack `trainplan` 2026-10-22; hosted project pending deploy
 
 ### Phase 2: Types and repositories
 
