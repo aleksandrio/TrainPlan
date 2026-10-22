@@ -3,7 +3,7 @@ project: "TrainPlan"
 version: 1
 status: active
 created: 2026-10-21
-updated: 2026-10-21
+updated: 2026-10-22
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -39,7 +39,7 @@ Planning a sensible training week by hand is slow and error-prone: the same musc
 
 | ID   | Change ID            | Outcome (user can …)                                            | Prerequisites | PRD refs                     | Status   |
 | ---- | -------------------- | --------------------------------------------------------------- | ------------- | ---------------------------- | -------- |
-| F-01 | data-model-rls       | (foundation) goals/plans/sessions tables with RLS and types     | —             | Access Control, NFR-3        | in-progress    |
+| F-01 | data-model-rls       | (foundation) goals/plans/sessions tables with RLS and types     | —             | Access Control, NFR-3        | done           |
 | F-02 | rule-engine          | (foundation) pure rule engine: load, validation, re-planning    | —             | Business Logic, FR-008/009   | in-progress    |
 | S-01 | goal-form            | create and edit their training goal                             | F-01          | FR-003, US-04                | in-progress |
 | S-02 | generate-week        | generate a validated weekly plan with one action and see it     | S-01, F-02    | FR-004, FR-005, FR-008, US-01, NFR-1, NFR-5 | in-progress |
@@ -84,7 +84,7 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **Unknowns:**
   - Is a hosted Supabase project available for applying migrations? — Owner: user. Block: no (migrations can be written and unit-tested logic does not need it).
 - **Risk:** Getting RLS wrong later is expensive; doing it first makes isolation the default for every slice.
-- **Status:** ready
+- **Status:** done
 
 ### F-02: Rule engine
 
@@ -217,4 +217,4 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 
 ## Done
 
-(empty; `/10x-archive` appends here)
+- **F-01: (foundation) `goals`, `plans`, `sessions` tables exist with RLS policies scoped to `auth.uid()`, TypeScript entity/DTO types in `src/types.ts`, and a typed Supabase client.** — Archived 2026-10-22 → `context/archive/2026-10-21-data-model-rls/`. Lesson: —.
