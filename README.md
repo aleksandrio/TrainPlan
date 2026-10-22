@@ -2,7 +2,7 @@
 
 One goal form in, a validated training week out. TrainPlan turns a goal (level, available days, fixed weekly activity) into a 7-day plan, checks it against three rules (48 h regeneration between heavy sessions on the same muscle group, a weekly load limit per level, a light day before your fixed activity), and re-plans the rest of the week when you skip a session.
 
-Built for the 10xDevs 4 course project. Public URL: _pending first deployment_ (see `context/deployment/deploy-plan.md`).
+Built for the 10xDevs 4 course project. Public URL: **https://trainplan.kowal-alek.workers.dev** (Cloudflare Workers, deployed 2026-10-22; see `context/deployment/deploy-plan.md`). Source: https://github.com/aleksandrio/TrainPlan.
 
 ## Features
 

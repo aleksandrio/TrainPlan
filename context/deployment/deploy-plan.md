@@ -26,3 +26,7 @@ Based on `context/foundation/infrastructure.md` and `context/foundation/tech-sta
 ## Rollback
 
 `npx wrangler rollback` to the previous version; secrets are unaffected.
+
+## Execution log
+
+- 2026-10-22: steps 1-3 done by the owner (hosted Supabase project `trainplan` in eu-west-1, migration pushed, `wrangler login`), secrets set, `npx wrangler deploy` succeeded. Public URL: https://trainplan.kowal-alek.workers.dev. Verification (steps 9-11) pending: run `BASE_URL=https://trainplan.kowal-alek.workers.dev npm run smoke` and the manual sign-up / generate check.
