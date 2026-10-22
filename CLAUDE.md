@@ -35,4 +35,4 @@ TrainPlan is a web app that turns one goal form into a validated weekly training
 ## Commits and CI
 
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `test:`, `docs:`), one change folder per feature under `context/changes/`.
-- GitHub Actions (`.github/workflows/ci.yml`) runs lint, `astro check`, build and the auth smoke test on push and PR to `master`; the build job needs `SUPABASE_URL` and `SUPABASE_KEY` repository secrets.
+- GitHub Actions (`.github/workflows/ci.yml`) runs lint, `astro check`, build and the auth smoke test on push and PR to `main`; the build job needs `SUPABASE_URL` and `SUPABASE_KEY` repository secrets.
