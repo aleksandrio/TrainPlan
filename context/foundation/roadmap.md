@@ -9,7 +9,7 @@ main_goal: speed
 top_blocker: time
 milestone_id: first-valid-week
 milestone_seq: 1
-milestone_status: open
+milestone_status: done
 ---
 
 # Roadmap: TrainPlan
@@ -20,7 +20,7 @@ milestone_status: open
 
 ## Milestone
 
-**M-1: First valid week** — Status: open
+**M-1: First valid week** — Status: done
 
 - **Intent:** A signed-in user fills one goal form, gets a rule-valid weekly plan, ticks sessions, and the week re-plans itself after a skip; every must-have FR of the PRD is delivered and the app is deployed under a public URL.
 - **Source materials:** `context/foundation/prd.md` (v1)
@@ -213,7 +213,7 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 
 ## Milestone History
 
-(empty on the first milestone)
+- **M-1: First valid week** — done 2026-10-22. All F-NN and S-NN archived (see `## Done`); public URL https://trainplan.kowal-alek.workers.dev.
 
 ## Done
 
@@ -221,8 +221,8 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **F-02: (foundation) a pure, unit-tested module computes session load, weekly limit per level, validates a week (48 h same-muscle-group rule, weekly load limit, light day before fixed commitment) returning named violations, and proposes a re-plan for remaining days after a skip.** — Archived 2026-10-22 → `context/archive/2026-10-21-rule-engine/`. Lesson: —.
 - **S-01: user can create and edit their one active training goal (goal text, level, available weekdays, fixed weekly commitment, notes) and is redirected to sign-in when logged out.** — Archived 2026-10-22 → `context/archive/2026-10-21-goal-form/`. Lesson: —.
 - **S-02: user can press "Generate week" and see a 7-day plan with one session per available day (type, muscle groups, intensity, duration, description), already validated by the rule engine and marked valid, with progress feedback and a retry on failure.** — Archived 2026-10-22 → `context/archive/2026-10-21-generate-week/`. Lesson: —.
-- **S-03: user can mark a session done or skipped (and undo), and after a skip receives a re-plan proposal for the remaining days with a change summary that they can accept or reject.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-tracking/`. Lesson: —.
-- **S-04: user can edit any session field, add their own session and delete sessions; the week re-validates on every change and shows violations inline.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-crud/`. Lesson: —.
-- **S-05: user can regenerate the current week; sessions already marked done are preserved and only remaining days are regenerated.** — Archived 2026-10-22 → `context/archive/2026-10-23-regenerate-week/`. Lesson: —.
-- **F-03: (foundation) the app is deployed to Cloudflare Workers with Supabase and OpenRouter secrets configured; the public URL serves sign-in and plan generation.** — Archived 2026-10-22 → `context/archive/2026-10-23-deploy-production/`. Lesson: —.
-- **S-06: user can see a plain list of past weeks with done/skipped counts.** — Archived 2026-10-22 → `context/archive/2026-10-23-week-history/`. Lesson: —.
+- **S-03: user can mark a session done or skipped (and undo), and after a skip receives a re-plan proposal for the remaining days with a change summary that they can accept or reject.** — Archived 2026-10-22 → `context/archive/2026-10-22-session-tracking/`. Lesson: —.
+- **S-04: user can edit any session field, add their own session and delete sessions; the week re-validates on every change and shows violations inline.** — Archived 2026-10-22 → `context/archive/2026-10-22-session-crud/`. Lesson: —.
+- **S-05: user can regenerate the current week; sessions already marked done are preserved and only remaining days are regenerated.** — Archived 2026-10-22 → `context/archive/2026-10-22-regenerate-week/`. Lesson: —.
+- **F-03: (foundation) the app is deployed to Cloudflare Workers with Supabase and OpenRouter secrets configured; the public URL serves sign-in and plan generation.** — Archived 2026-10-22 → `context/archive/2026-10-22-deploy-production/`. Lesson: —.
+- **S-06: user can see a plain list of past weeks with done/skipped counts.** — Archived 2026-10-22 → `context/archive/2026-10-22-week-history/`. Lesson: —.

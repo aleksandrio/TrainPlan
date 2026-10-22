@@ -4,7 +4,7 @@
 
 Deploy the app to Cloudflare Workers with Supabase and OpenRouter secrets configured (F-03, NFR-4). Step-by-step runbook: `context/deployment/deploy-plan.md`.
 
-> Implemented together with S-01/S-02 in one commit before this change folder existed; this folder documents the slice retroactively (2026-10-23) so the roadmap item has its own plan and progress record.
+> Implemented together with S-01/S-02 in one commit before this change folder existed; this folder documents the slice retroactively (2026-10-22) so the roadmap item has its own plan and progress record.
 
 ## Current State Analysis
 

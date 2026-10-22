@@ -4,7 +4,7 @@
 
 Let a user mark sessions done or skipped (and undo), and after a skip propose a re-plan of the remaining days with a change summary to accept or reject (S-03, FR-007, FR-009, US-02).
 
-> Implemented together with S-01/S-02 in one commit before this change folder existed; this folder documents the slice retroactively (2026-10-23) so the roadmap item has its own plan and progress record.
+> Implemented together with S-01/S-02 in one commit before this change folder existed; this folder documents the slice retroactively (2026-10-22) so the roadmap item has its own plan and progress record.
 
 ## Current State Analysis
 

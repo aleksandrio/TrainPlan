@@ -4,7 +4,7 @@
 
 Let a user see a plain list of past weeks with done/skipped counts (S-06, FR-012, nice-to-have).
 
-> Implemented together with S-01/S-02 in one commit before this change folder existed; this folder documents the slice retroactively (2026-10-23) so the roadmap item has its own plan and progress record.
+> Implemented together with S-01/S-02 in one commit before this change folder existed; this folder documents the slice retroactively (2026-10-22) so the roadmap item has its own plan and progress record.
 
 ## Current State Analysis
 
