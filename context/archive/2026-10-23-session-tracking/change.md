@@ -1,10 +1,10 @@
 ---
 change_id: session-tracking
 title: Session tracking and re-planning
-status: implemented
+status: archived
 created: 2026-10-23
-updated: 2026-10-23
-archived_at: null
+updated: 2026-10-22
+archived_at: 2026-10-22T22:21:12Z
 ---
 
 ## Notes

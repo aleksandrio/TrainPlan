@@ -43,7 +43,7 @@ Planning a sensible training week by hand is slow and error-prone: the same musc
 | F-02 | rule-engine          | (foundation) pure rule engine: load, validation, re-planning    | —             | Business Logic, FR-008/009   | done           |
 | S-01 | goal-form            | create and edit their training goal                             | F-01          | FR-003, US-04                | done        |
 | S-02 | generate-week        | generate a validated weekly plan with one action and see it     | S-01, F-02    | FR-004, FR-005, FR-008, US-01, NFR-1, NFR-5 | done        |
-| S-03 | session-tracking     | mark sessions done/skipped and accept a re-planned week         | S-02          | FR-007, FR-009, US-02        | in-progress |
+| S-03 | session-tracking     | mark sessions done/skipped and accept a re-planned week         | S-02          | FR-007, FR-009, US-02        | done        |
 | S-04 | session-crud         | edit, add and delete sessions with inline violations            | S-02          | FR-010, FR-011, US-03        | in-progress |
 | S-05 | regenerate-week      | regenerate the remaining week keeping done sessions             | S-03          | FR-006                       | in-progress |
 | F-03 | deploy-production    | (foundation) app live on a public URL with secrets configured   | S-02          | infrastructure.md            | in-progress |
@@ -150,7 +150,7 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Re-planning must never touch done sessions; covered by engine unit tests before UI work.
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: Session CRUD with inline violations
 
@@ -221,3 +221,4 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **F-02: (foundation) a pure, unit-tested module computes session load, weekly limit per level, validates a week (48 h same-muscle-group rule, weekly load limit, light day before fixed commitment) returning named violations, and proposes a re-plan for remaining days after a skip.** — Archived 2026-10-22 → `context/archive/2026-10-21-rule-engine/`. Lesson: —.
 - **S-01: user can create and edit their one active training goal (goal text, level, available weekdays, fixed weekly commitment, notes) and is redirected to sign-in when logged out.** — Archived 2026-10-22 → `context/archive/2026-10-21-goal-form/`. Lesson: —.
 - **S-02: user can press "Generate week" and see a 7-day plan with one session per available day (type, muscle groups, intensity, duration, description), already validated by the rule engine and marked valid, with progress feedback and a retry on failure.** — Archived 2026-10-22 → `context/archive/2026-10-21-generate-week/`. Lesson: —.
+- **S-03: user can mark a session done or skipped (and undo), and after a skip receives a re-plan proposal for the remaining days with a change summary that they can accept or reject.** — Archived 2026-10-22 → `context/archive/2026-10-23-session-tracking/`. Lesson: —.
