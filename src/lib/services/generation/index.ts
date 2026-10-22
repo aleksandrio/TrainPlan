@@ -1,7 +1,7 @@
 import type { GoalInput, WeekValidation } from "@/types";
 import { validateWeek } from "@/lib/services/rules";
 import { draftWeekWithLlm, LlmError, type LlmConfig } from "./openrouter";
-import { commitmentSession, templateWeek, type DraftSession } from "./template";
+import { commitmentSession, repairDraft, templateWeek, type DraftSession } from "./template";
 
 export type GenerationSource = "llm" | "llm-repaired" | "template";
 
@@ -20,7 +20,7 @@ export interface GenerateOptions {
 
 /**
  * Produce a rule-valid week for the goal.
- * Order: LLM draft -> validate -> one repair round -> deterministic template fallback.
+ * Order: LLM draft -> validate -> deterministic repair of the draft -> deterministic template fallback.
  */
 export async function generateWeek(goal: GoalInput, opts: GenerateOptions = {}): Promise<GenerationResult> {
   const keep = opts.keep ?? [];
@@ -39,15 +39,21 @@ export async function generateWeek(goal: GoalInput, opts: GenerateOptions = {}):
       const v1 = validateWeek(first, goal);
       if (v1.valid) return { sessions: sortDraft(first), validation: v1, source: "llm", note: null };
 
-      const repaired = await draftWeekWithLlm(planningGoal, locked, opts.llm, v1.violations);
-      const second = [...locked, ...repaired];
-      const v2 = validateWeek(second, goal);
-      if (v2.valid) return { sessions: sortDraft(second), validation: v2, source: "llm-repaired", note: null };
+      const repaired = repairDraft(draft, goal, locked);
+      const v2 = validateWeek(repaired, goal);
+      if (v2.valid) {
+        return {
+          sessions: repaired,
+          validation: v2,
+          source: "llm-repaired",
+          note: "The AI draft broke a rule; the marked sessions were adjusted to keep the week valid.",
+        };
+      }
       return fallback(
         planningGoal,
         goal,
         locked,
-        "The AI draft kept breaking the rules; a template week was used instead.",
+        "The AI draft could not be made rule-valid; a template week was used instead.",
       );
     } catch (err) {
       const reason = err instanceof LlmError ? err.message : "AI generation failed";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateWeek } from "@/lib/services/rules";
 import type { GoalInput, Level, Weekday } from "@/types";
-import { commitmentSession, templateWeek } from "./template";
+import { commitmentSession, repairDraft, templateWeek } from "./template";
 import { generateWeek } from "./index";
 
 const base: GoalInput = {
@@ -129,5 +129,54 @@ describe("generateWeek without an LLM", () => {
     expect(result.source).toBe("llm");
     expect(result.validation.valid).toBe(true);
     expect(result.sessions.find((s) => s.day === 3)?.description).toBe("jumps");
+  });
+});
+
+describe("repairDraft", () => {
+  const draftSession = (
+    day: Weekday,
+    intensity: "light" | "moderate" | "heavy",
+    groups: ("legs" | "push" | "cardio" | "core")[],
+  ) => ({
+    day,
+    type: "strength" as const,
+    muscleGroups: groups,
+    intensity,
+    durationMin: 60,
+    description: `ai ${day}`,
+    status: "planned" as const,
+    locked: false,
+    source: "generated" as const,
+  });
+
+  it("keeps AI content but lowers the later heavy session on adjacent days and the commitment eve", () => {
+    const goal: GoalInput = { ...base, availableDays: [1, 2, 6] };
+    const locked = lockedFor(goal);
+    // Mon volleyball (locked heavy legs) + Tue heavy legs = 48 h conflict; Sun heavy before Monday
+    const draft = [
+      draftSession(1, "heavy", ["legs"]),
+      draftSession(2, "moderate", ["push"]),
+      draftSession(6, "heavy", ["push"]),
+    ];
+    const repaired = repairDraft(draft, goal, locked);
+    expect(validateWeek(repaired, goal).valid).toBe(true);
+    expect(repaired.find((s) => s.day === 1)?.intensity).toBe("moderate");
+    expect(repaired.find((s) => s.day === 6)?.intensity).toBe("light");
+    expect(repaired.find((s) => s.day === 2)?.description).toContain("ai 2");
+  });
+
+  it("fills days the AI skipped and drops days outside the goal", () => {
+    const locked = lockedFor(base);
+    const draft = [draftSession(3, "moderate", ["push"]), draftSession(2, "moderate", ["cardio"])];
+    const repaired = repairDraft(draft, base, locked);
+    expect(repaired.filter((s) => !s.locked).map((s) => s.day)).toEqual([1, 3, 4, 5]);
+    expect(validateWeek(repaired, base).valid).toBe(true);
+  });
+
+  it("trims an overloaded AI week to the level limit", () => {
+    const locked = lockedFor(base);
+    const draft = [1, 3, 4, 5].map((d) => draftSession(d as Weekday, "heavy", d === 3 ? ["push"] : ["cardio"]));
+    const repaired = repairDraft(draft, base, locked);
+    expect(validateWeek(repaired, base).valid).toBe(true);
   });
 });
