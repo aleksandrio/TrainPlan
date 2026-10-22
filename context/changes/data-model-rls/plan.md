@@ -103,7 +103,7 @@ Single migration, one week per `plans` row keyed by `(user_id, week_start)`, ses
 
 #### Automated
 
-- [x] 1.1 Migration SQL written and lint-clean — 1845cd9
+- [x] 1.1 Migration SQL written and lint-clean — e4e08a6
 
 #### Manual
 
@@ -113,6 +113,6 @@ Single migration, one week per `plans` row keyed by `(user_id, week_start)`, ses
 
 #### Automated
 
-- [x] 2.1 `npx astro check` passes — 1845cd9
-- [x] 2.2 `npm run lint` passes — 1845cd9
-- [x] 2.3 `npm run build` passes — 1845cd9
+- [x] 2.1 `npx astro check` passes — e4e08a6
+- [x] 2.2 `npm run lint` passes — e4e08a6
+- [x] 2.3 `npm run build` passes — e4e08a6

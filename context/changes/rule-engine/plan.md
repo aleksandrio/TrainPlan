@@ -153,20 +153,20 @@ Shared domain types and Vitest wiring.
 
 #### Automated
 
-- [x] 1.1 `npm run test` runs — 2078703
-- [x] 1.2 `npm run lint` passes — 2078703
-- [x] 1.3 `npx astro check` passes — 2078703
+- [x] 1.1 `npm run test` runs — 011ce4f
+- [x] 1.2 `npm run lint` passes — 011ce4f
+- [x] 1.3 `npx astro check` passes — 011ce4f
 
 ### Phase 2: Load and validation
 
 #### Automated
 
-- [x] 2.1 `npm run test` passes with rule coverage — 2078703
-- [x] 2.2 `npm run lint` passes — 2078703
+- [x] 2.1 `npm run test` passes with rule coverage — 011ce4f
+- [x] 2.2 `npm run lint` passes — 011ce4f
 
 ### Phase 3: Re-planning after skip
 
 #### Automated
 
-- [x] 3.1 `npm run test` passes including re-plan tests — 2078703
-- [x] 3.2 `npm run lint` passes — 2078703
+- [x] 3.1 `npm run test` passes including re-plan tests — 011ce4f
+- [x] 3.2 `npm run lint` passes — 011ce4f
