@@ -41,7 +41,7 @@ Planning a sensible training week by hand is slow and error-prone: the same musc
 | ---- | -------------------- | --------------------------------------------------------------- | ------------- | ---------------------------- | -------- |
 | F-01 | data-model-rls       | (foundation) goals/plans/sessions tables with RLS and types     | —             | Access Control, NFR-3        | done           |
 | F-02 | rule-engine          | (foundation) pure rule engine: load, validation, re-planning    | —             | Business Logic, FR-008/009   | done           |
-| S-01 | goal-form            | create and edit their training goal                             | F-01          | FR-003, US-04                | in-progress |
+| S-01 | goal-form            | create and edit their training goal                             | F-01          | FR-003, US-04                | done        |
 | S-02 | generate-week        | generate a validated weekly plan with one action and see it     | S-01, F-02    | FR-004, FR-005, FR-008, US-01, NFR-1, NFR-5 | in-progress |
 | S-03 | session-tracking     | mark sessions done/skipped and accept a re-planned week         | S-02          | FR-007, FR-009, US-02        | in-progress |
 | S-04 | session-crud         | edit, add and delete sessions with inline violations            | S-02          | FR-010, FR-011, US-03        | in-progress |
@@ -125,7 +125,7 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** First slice with real data; proves RLS and the zod-validated API route pattern used by every later slice.
-- **Status:** proposed
+- **Status:** done
 
 ### S-02: Generate week
 
@@ -219,3 +219,4 @@ What's already in place in the codebase as of 2026-10-21 (auto-researched from t
 
 - **F-01: (foundation) `goals`, `plans`, `sessions` tables exist with RLS policies scoped to `auth.uid()`, TypeScript entity/DTO types in `src/types.ts`, and a typed Supabase client.** — Archived 2026-10-22 → `context/archive/2026-10-21-data-model-rls/`. Lesson: —.
 - **F-02: (foundation) a pure, unit-tested module computes session load, weekly limit per level, validates a week (48 h same-muscle-group rule, weekly load limit, light day before fixed commitment) returning named violations, and proposes a re-plan for remaining days after a skip.** — Archived 2026-10-22 → `context/archive/2026-10-21-rule-engine/`. Lesson: —.
+- **S-01: user can create and edit their one active training goal (goal text, level, available weekdays, fixed weekly commitment, notes) and is redirected to sign-in when logged out.** — Archived 2026-10-22 → `context/archive/2026-10-21-goal-form/`. Lesson: —.
