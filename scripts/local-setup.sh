@@ -28,6 +28,8 @@ echo "   SUPABASE_URL=$API_URL"
 
 echo "▶ Installing dependencies…"
 npm ci
+echo "▶ Generating Astro types (astro:env, astro:middleware)…"
+npx astro sync
 echo "▶ Lint, typecheck, unit tests…"
 npm run lint
 npx astro check
