@@ -10,7 +10,8 @@ async function signUp(page: Page) {
   await page.goto("/auth/signup");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
-  await page.getByRole("button", { name: /sign up/i }).click();
+  await page.getByLabel("Confirm password").fill(password);
+  await page.getByRole("button", { name: /create account/i }).click();
   await page.waitForURL(/\/app\/goal$/);
   return email;
 }
