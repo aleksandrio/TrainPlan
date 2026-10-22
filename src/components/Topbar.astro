@@ -1,33 +1,72 @@
 ---
+/**
+ * Site-wide top bar. Public pages show sign in / sign up; signed-in users get the app nav.
+ */
+interface Props {
+  active?: "week" | "goal" | "history";
+}
+
+const { active } = Astro.props;
 const { user } = Astro.locals;
+
+const items = [
+  { key: "week", href: "/app", label: "Week" },
+  { key: "goal", href: "/app/goal", label: "Goal" },
+  { key: "history", href: "/app/history", label: "History" },
+] as const;
 ---
 
-<div class="mb-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80">
+<header class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-border px-4 py-3 sm:px-6">
+  <a href={user ? "/app" : "/"} class="label font-medium tracking-[0.12em] text-foreground">
+    TrainPlan<sup class="ml-0.5 text-[0.55rem] text-accent-ink">beta</sup>
+  </a>
+
   {user ? (
-    <>
-      <span class="text-blue-100/70">{user.email}</span>
-      <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-          Dashboard
+    <nav class="order-last flex w-full gap-0.5 sm:order-none sm:w-auto" aria-label="Main">
+      {items.map((it) => (
+        <a
+          href={it.href}
+          aria-current={active === it.key ? "page" : undefined}
+          class:list={[
+            "label -mb-px border-b px-3 py-2 transition-colors",
+            active === it.key
+              ? "border-primary text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground",
+          ]}
+        >
+          {it.label}
         </a>
+      ))}
+    </nav>
+  ) : null}
+
+  <div class="label flex items-center gap-4 text-muted-foreground">
+    {user ? (
+      <>
+        <span class="hidden sm:inline" data-testid="user-email">
+          {user.email}
+        </span>
         <form method="POST" action="/api/auth/signout">
-          <button type="submit" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
+          <button type="submit" class="label text-foreground underline-offset-4 transition-colors hover:underline">
             Sign out
           </button>
         </form>
-      </div>
-    </>
-  ) : (
-    <>
-      <span class="text-blue-100/70">Not signed in</span>
-      <div class="flex gap-3">
-        <a href="/auth/signin" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
+      </>
+    ) : (
+      <>
+        <a
+          href="/auth/signin"
+          class="border border-line-strong px-3 py-1.5 text-foreground transition-colors hover:bg-secondary"
+        >
           Sign in
         </a>
-        <a href="/auth/signup" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-          Sign up
+        <a
+          href="/auth/signup"
+          class="border border-primary bg-primary px-3 py-1.5 text-white transition-opacity hover:opacity-90"
+        >
+          Create account
         </a>
-      </div>
-    </>
-  )}
-</div>
+      </>
+    )}
+  </div>
+</header>

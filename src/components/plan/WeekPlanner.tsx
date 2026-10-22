@@ -13,11 +13,28 @@ interface Props {
   today: Weekday;
 }
 
-const intensityStyle: Record<Session["intensity"], string> = {
-  light: "bg-emerald-500/20 text-emerald-100 border-emerald-300/30",
-  moderate: "bg-amber-500/20 text-amber-100 border-amber-300/30",
-  heavy: "bg-rose-500/20 text-rose-100 border-rose-300/30",
+/** Left edge of a session card encodes intensity: grey light, white moderate, red heavy. */
+const intensityEdge: Record<Session["intensity"], string> = {
+  light: "border-l-line-strong",
+  moderate: "border-l-foreground",
+  heavy: "border-l-primary",
 };
+
+const changeGlyph: Record<ReplanChange["action"], string> = { moved: "➜", dropped: "✕", kept: "•" };
+
+const MS_PER_DAY = 86_400_000;
+const dayFmt = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" });
+const numFmt = new Intl.DateTimeFormat("en", { day: "2-digit" });
+
+function weekDates(weekStart: string) {
+  const start = new Date(`${weekStart}T00:00:00Z`);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = new Date(start.getTime() + 6 * MS_PER_DAY);
+  return {
+    range: `${dayFmt.format(start)} - ${dayFmt.format(end)}`,
+    dayNumber: (day: Weekday) => numFmt.format(new Date(start.getTime() + day * MS_PER_DAY)),
+  };
+}
 
 export default function WeekPlanner(props: Props) {
   const [plan, setPlan] = useState<Plan | null>(props.plan);
@@ -29,6 +46,8 @@ export default function WeekPlanner(props: Props) {
   const [lastChanges, setLastChanges] = useState<ReplanChange[] | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState<Weekday | null>(null);
+
+  const dates = weekDates(props.weekStart);
 
   function applyState(state: WeekStateDto) {
     setPlan(state.plan);
@@ -97,48 +116,78 @@ export default function WeekPlanner(props: Props) {
   };
 
   const sessionsByDay = (day: Weekday) => plan?.sessions.filter((s) => s.day === day) ?? [];
+  const doneCount = plan?.sessions.filter((s) => s.status === "done").length ?? 0;
+  const generating = busy === "generate";
 
   return (
-    <div className="space-y-4" data-testid="week-planner">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
-        <div>
-          <h1 className="text-xl font-bold">Week of {props.weekStart}</h1>
-          <p className="text-sm text-blue-100/70">
+    <div className="corner-marks border-border border" data-testid="week-planner">
+      {/* Header: week title, goal summary, stats, primary action */}
+      <div className="border-border grid gap-6 border-b px-5 py-6 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="min-w-0">
+          <span className="label text-accent-ink">Week of {dates?.range ?? props.weekStart}</span>
+          <h1 className="mt-1 text-4xl sm:text-5xl">Your week</h1>
+          <p className="text-muted-foreground mt-2 text-sm">
             {props.goal.goalText} · {props.goal.level}
             {props.goal.fixedCommitment &&
               ` · ${props.goal.fixedCommitment.label} on ${WEEKDAY_LABELS[props.goal.fixedCommitment.day]}`}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex flex-col gap-3 lg:items-end">
           {validation && (
-            <span
-              data-testid="validity-badge"
-              className={cn(
-                "rounded-full border px-3 py-1 text-sm font-medium",
-                validation.valid
-                  ? "border-emerald-300/40 bg-emerald-500/20 text-emerald-100"
-                  : "border-rose-300/40 bg-rose-500/20 text-rose-100",
+            <dl className="border-border bg-border flex gap-px border" data-testid="validity-badge">
+              <div
+                className={cn(
+                  "bg-background flex min-w-[6.5rem] flex-col gap-1 px-4 py-2.5",
+                  validation.valid ? "text-ok" : "text-accent-ink",
+                )}
+              >
+                <dt className="label text-muted-foreground">Status</dt>
+                <dd className="font-display text-2xl leading-none">
+                  {validation.valid ? "Valid week" : `${validation.violations.length} rule issue(s)`}
+                </dd>
+              </div>
+              <div className="bg-background flex min-w-[6.5rem] flex-col gap-1 px-4 py-2.5">
+                <dt className="label text-muted-foreground">Load</dt>
+                <dd className="font-display text-foreground text-2xl leading-none tabular-nums">
+                  {validation.load}
+                  <span className="label text-muted-foreground ml-1">/{validation.limit}</span>
+                </dd>
+                <div className="bg-border h-0.5" aria-hidden="true">
+                  <div
+                    className={cn("h-full", validation.load > validation.limit ? "bg-primary" : "bg-foreground")}
+                    style={{ width: `${Math.min(100, (validation.load / validation.limit) * 100)}%` }}
+                  />
+                </div>
+              </div>
+              {plan && (
+                <div className="bg-background flex min-w-[6.5rem] flex-col gap-1 px-4 py-2.5">
+                  <dt className="label text-muted-foreground">Sessions</dt>
+                  <dd className="font-display text-foreground text-2xl leading-none tabular-nums">
+                    {plan.sessions.length}
+                    <span className="label text-muted-foreground ml-1">· {doneCount} done</span>
+                  </dd>
+                </div>
               )}
-            >
-              {validation.valid ? "Valid week" : `${validation.violations.length} rule issue(s)`} · load{" "}
-              {validation.load}/{validation.limit}
-            </span>
+            </dl>
           )}
           <button
             type="button"
             onClick={generate}
             disabled={busy !== null}
             data-testid="generate-button"
-            className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-sm font-medium shadow transition hover:opacity-90 disabled:opacity-60"
+            className={cn(
+              "inline-flex items-center justify-center gap-2 border px-4 py-2.5 text-sm font-medium transition-opacity disabled:opacity-60",
+              plan
+                ? "border-line-strong text-foreground hover:bg-secondary"
+                : "border-primary bg-primary text-white hover:opacity-90",
+            )}
           >
-            {busy === "generate" ? (
-              <span className="flex items-center gap-2">
-                <span
-                  className="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white"
-                  aria-hidden
-                />
+            {generating ? (
+              <>
+                <span className="size-3 animate-spin rounded-full border border-white/40 border-t-white" aria-hidden />
                 Preparing your week…
-              </span>
+              </>
             ) : plan ? (
               "Regenerate week"
             ) : (
@@ -148,178 +197,211 @@ export default function WeekPlanner(props: Props) {
         </div>
       </div>
 
-      {busy === "generate" && (
-        <p role="status" className="text-sm text-blue-100/70">
-          Drafting sessions and checking regeneration, weekly load and your fixed activity. This can take up to 20
-          seconds.
-        </p>
-      )}
+      {/* Alert band: generation note, errors, violations, re-plan summary and proposal */}
+      {generating ||
+      error ||
+      note ||
+      proposal ||
+      (lastChanges && lastChanges.length > 0) ||
+      validation?.violations.length ? (
+        <div className="border-border flex flex-col gap-2 border-b px-5 py-3 sm:px-6">
+          {generating && (
+            <p role="status" className="text-muted-foreground text-sm">
+              Drafting sessions and checking regeneration, weekly load and your fixed activity. This can take up to 20
+              seconds.
+            </p>
+          )}
 
-      {error && (
-        <div
-          role="alert"
-          className="flex items-center justify-between rounded-lg border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
-        >
-          <span>{error}</span>
-          <button type="button" onClick={generate} className="underline">
-            Retry
-          </button>
-        </div>
-      )}
-
-      {note && (
-        <p
-          className="rounded-lg border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
-          data-testid="generation-note"
-        >
-          {note}
-        </p>
-      )}
-
-      {validation && validation.violations.length > 0 && (
-        <ul
-          className="space-y-1 rounded-lg border border-rose-300/30 bg-rose-500/10 p-3 text-sm text-rose-100"
-          data-testid="violations"
-        >
-          {validation.violations.map((v) => (
-            <li key={`${v.rule}-${v.days.join("-")}-${v.message}`}>⚠ {v.message}</li>
-          ))}
-        </ul>
-      )}
-
-      {lastChanges && lastChanges.length > 0 && (
-        <div
-          className="rounded-lg border border-blue-300/30 bg-blue-500/10 p-3 text-sm text-blue-100"
-          data-testid="change-summary"
-        >
-          <p className="mb-1 font-medium">Re-planned:</p>
-          <ul className="space-y-1">
-            {lastChanges.map((c) => (
-              <li key={c.sessionId}>
-                {c.action === "moved" ? "➜" : c.action === "dropped" ? "✕" : "•"} {c.reason}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {proposal && (
-        <div
-          role="dialog"
-          aria-label="Re-plan proposal"
-          className="rounded-2xl border border-purple-300/40 bg-black/40 p-4 text-sm backdrop-blur-xl"
-          data-testid="replan-dialog"
-        >
-          <p className="mb-2 font-medium">You skipped a session. Here is how the rest of the week could change:</p>
-          <ul className="mb-3 space-y-1 text-blue-100/80">
-            {proposal.proposal.changes.map((c) => (
-              <li key={c.sessionId}>
-                {c.action === "moved" ? "➜" : c.action === "dropped" ? "✕" : "•"} {c.reason}
-              </li>
-            ))}
-          </ul>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => acceptReplan(proposal.sessionId)}
-              disabled={busy !== null}
-              className="rounded-md bg-purple-500/70 px-3 py-1.5 font-medium hover:bg-purple-500"
-              data-testid="accept-replan"
+          {error && (
+            <div
+              role="alert"
+              className="border-primary text-accent-ink flex flex-wrap items-center justify-between gap-3 border px-3 py-2 text-sm"
             >
-              Accept re-plan
-            </button>
-            <button
-              type="button"
-              onClick={() => keepWithoutReplan(proposal.sessionId)}
-              disabled={busy !== null}
-              className="rounded-md border border-white/20 px-3 py-1.5 hover:bg-white/10"
-              data-testid="keep-plan"
-            >
-              Just mark as skipped
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setProposal(null);
-              }}
-              className="rounded-md px-3 py-1.5 text-blue-100/60 hover:text-white"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+              <span>{error}</span>
+              <button type="button" onClick={generate} className="label underline underline-offset-4">
+                Retry
+              </button>
+            </div>
+          )}
 
+          {note && (
+            <p className="border-warn/60 text-warn border px-3 py-2 text-sm" data-testid="generation-note">
+              {note}
+            </p>
+          )}
+
+          {validation && validation.violations.length > 0 && (
+            <ul className="border-primary border text-sm" data-testid="violations">
+              {validation.violations.map((v) => (
+                <li
+                  key={`${v.rule}-${v.days.join("-")}-${v.message}`}
+                  className="border-primary/40 grid gap-x-4 gap-y-1 border-b px-3 py-2 last:border-b-0 sm:grid-cols-[6rem_1fr_auto] sm:items-center"
+                >
+                  <span className="label text-accent-ink">Rule issue</span>
+                  <span className="text-foreground">{v.message}</span>
+                  <span className="label text-muted-foreground">{v.rule}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {lastChanges && lastChanges.length > 0 && (
+            <div
+              className="border-border grid gap-x-4 gap-y-1 border px-3 py-2 text-sm sm:grid-cols-[6rem_1fr]"
+              data-testid="change-summary"
+            >
+              <span className="label text-muted-foreground">Re-planned</span>
+              <ul className="text-ink-body flex flex-col gap-0.5">
+                {lastChanges.map((c) => (
+                  <li key={c.sessionId}>
+                    <span className="text-muted-foreground mr-1.5">{changeGlyph[c.action]}</span>
+                    {c.reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {proposal && (
+            <div
+              role="dialog"
+              aria-label="Re-plan proposal"
+              className="border-foreground bg-card grid gap-x-4 gap-y-3 border px-3 py-3 text-sm sm:grid-cols-[6rem_1fr]"
+              data-testid="replan-dialog"
+            >
+              <span className="label text-accent-ink">Re-plan</span>
+              <div className="flex flex-col gap-3">
+                <p className="text-foreground">You skipped a session. Here is how the rest of the week could change:</p>
+                <ul className="text-ink-body flex flex-col gap-0.5">
+                  {proposal.proposal.changes.map((c) => (
+                    <li key={c.sessionId}>
+                      <span className="text-muted-foreground mr-1.5">{changeGlyph[c.action]}</span>
+                      {c.reason}
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => acceptReplan(proposal.sessionId)}
+                    disabled={busy !== null}
+                    className="border-primary bg-primary border px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                    data-testid="accept-replan"
+                  >
+                    Accept re-plan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => keepWithoutReplan(proposal.sessionId)}
+                    disabled={busy !== null}
+                    className="border-line-strong text-foreground hover:bg-secondary border px-3 py-1.5 text-sm transition-colors disabled:opacity-60"
+                    data-testid="keep-plan"
+                  >
+                    Just mark as skipped
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProposal(null);
+                    }}
+                    className="label text-muted-foreground hover:text-foreground px-3 py-1.5 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {/* Week grid */}
       {!plan ? (
-        <div
-          className="rounded-2xl border border-dashed border-white/20 p-10 text-center text-blue-100/70"
-          data-testid="empty-week"
-        >
-          No plan for this week yet. Press <strong>Generate week</strong> and TrainPlan will build one from your goal.
+        <div className="px-5 py-14 text-center sm:px-6" data-testid="empty-week">
+          <span className="label text-accent-ink">Step 2</span>
+          <h2 className="mt-3 mb-3 text-3xl">No plan for this week yet</h2>
+          <p className="text-muted-foreground mx-auto max-w-[40ch] text-sm">
+            Press <strong className="text-foreground font-medium">Generate week</strong> and TrainPlan will build one
+            from your goal.
+          </p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7" data-testid="week-grid">
+        <div className="bg-border grid gap-px sm:grid-cols-2 lg:grid-cols-7" data-testid="week-grid">
           {WEEKDAYS.map((day) => {
             const isAvailable = props.goal.availableDays.includes(day) || props.goal.fixedCommitment?.day === day;
+            const isToday = day === props.today;
             return (
               <section
                 key={day}
                 data-testid={`day-${day}`}
-                className={cn(
-                  "flex min-h-40 flex-col gap-2 rounded-xl border p-2",
-                  day === props.today ? "border-purple-300/60 bg-white/10" : "border-white/10 bg-white/5",
-                  !isAvailable && "opacity-60",
-                )}
+                className={cn("bg-background flex min-h-56 min-w-0 flex-col", !isAvailable && "bg-hatch")}
               >
-                <header className="flex items-center justify-between text-xs tracking-wide text-blue-100/70 uppercase">
-                  <span>{WEEKDAY_LABELS[day]}</span>
-                  {day === props.today && <span className="text-purple-200">today</span>}
+                <header
+                  className={cn(
+                    "flex items-baseline justify-between border-b px-3 py-2.5",
+                    isToday ? "border-primary border-b-2" : "border-border",
+                  )}
+                >
+                  <span className={cn("label", isToday ? "text-accent-ink" : "text-muted-foreground")}>
+                    {WEEKDAY_LABELS[day]}
+                    {isToday && " · today"}
+                  </span>
+                  {dates && (
+                    <span className="font-display text-foreground text-xl leading-none tabular-nums">
+                      {dates.dayNumber(day)}
+                    </span>
+                  )}
                 </header>
-                {sessionsByDay(day).map((s) =>
-                  editing === s.id ? (
+                <div className="flex flex-1 flex-col gap-2 p-2">
+                  {sessionsByDay(day).map((s) =>
+                    editing === s.id ? (
+                      <SessionForm
+                        key={s.id}
+                        initial={s}
+                        submitLabel="Save"
+                        onSubmit={saveEdit(s)}
+                        onCancel={() => {
+                          setEditing(null);
+                        }}
+                      />
+                    ) : (
+                      <SessionCard
+                        key={s.id}
+                        session={s}
+                        busy={busy === s.id}
+                        onStatus={(status) => setStatus(s, status)}
+                        onEdit={() => {
+                          setEditing(s.id);
+                        }}
+                        onDelete={() => remove(s)}
+                      />
+                    ),
+                  )}
+                  {sessionsByDay(day).length === 0 && adding !== day && (
+                    <p className="label text-line-strong py-4 text-center">Rest</p>
+                  )}
+                  {adding === day ? (
                     <SessionForm
-                      key={s.id}
-                      initial={s}
-                      submitLabel="Save"
-                      onSubmit={saveEdit(s)}
+                      initial={{ day }}
+                      submitLabel="Add"
+                      onSubmit={saveNew}
                       onCancel={() => {
-                        setEditing(null);
+                        setAdding(null);
                       }}
                     />
                   ) : (
-                    <SessionCard
-                      key={s.id}
-                      session={s}
-                      busy={busy === s.id}
-                      onStatus={(status) => setStatus(s, status)}
-                      onEdit={() => {
-                        setEditing(s.id);
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdding(day);
                       }}
-                      onDelete={() => remove(s)}
-                    />
-                  ),
-                )}
-                {adding === day ? (
-                  <SessionForm
-                    initial={{ day }}
-                    submitLabel="Add"
-                    onSubmit={saveNew}
-                    onCancel={() => {
-                      setAdding(null);
-                    }}
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAdding(day);
-                    }}
-                    className="mt-auto rounded-md border border-dashed border-white/20 px-2 py-1 text-xs text-blue-100/60 hover:bg-white/10 hover:text-white"
-                    data-testid={`add-session-${day}`}
-                  >
-                    + add session
-                  </button>
-                )}
+                      className="label border-border text-muted-foreground hover:border-line-strong hover:text-foreground mt-auto border border-dashed px-2 py-2 transition-colors"
+                      data-testid={`add-session-${day}`}
+                    >
+                      + add session
+                    </button>
+                  )}
+                </div>
               </section>
             );
           })}
@@ -337,40 +419,36 @@ interface CardProps {
   onDelete: () => void;
 }
 
+const smallBtn =
+  "label border border-line-strong px-2 py-1 text-ink-body transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50";
+
 function SessionCard({ session: s, busy, onStatus, onEdit, onDelete }: CardProps) {
   return (
     <article
       data-testid="session-card"
       data-status={s.status}
       className={cn(
-        "rounded-lg border p-2 text-sm",
-        intensityStyle[s.intensity],
-        s.status === "done" && "opacity-70 ring-1 ring-emerald-300/60",
-        s.status === "skipped" && "line-through opacity-50",
+        "border-border bg-card flex flex-col gap-1.5 border border-l-[3px] p-2.5 text-sm",
+        intensityEdge[s.intensity],
+        s.locked && "border-dashed [border-left-style:solid]",
+        s.status === "done" && "border-l-ok",
+        s.status === "skipped" && "opacity-50",
       )}
     >
-      <div className="flex items-start justify-between gap-1">
-        <div>
-          <p className="font-medium capitalize">
-            {s.type.replace("_", " ")} · {s.intensity}
-          </p>
-          <p className="text-xs opacity-80">
-            {s.muscleGroups.join(", ")} · {s.durationMin} min{s.locked && " · fixed"}
-          </p>
-        </div>
-        {!s.locked && (
-          <div className="flex gap-1 text-xs opacity-80">
-            <button type="button" onClick={onEdit} aria-label="Edit session" className="hover:underline">
-              edit
-            </button>
-            <button type="button" onClick={onDelete} aria-label="Delete session" className="hover:underline">
-              del
-            </button>
-          </div>
-        )}
+      <div className="label text-muted-foreground flex items-start justify-between gap-2">
+        <span className="text-foreground">{s.type.replace("_", " ")}</span>
+        <span className={cn(s.intensity === "heavy" && "text-accent-ink")}>{s.intensity}</span>
       </div>
-      {s.description && <p className="mt-1 text-xs opacity-90">{s.description}</p>}
-      <div className="mt-2 flex flex-wrap gap-1">
+      <p
+        className={cn("text-foreground text-[13px] leading-snug font-medium", s.status === "skipped" && "line-through")}
+      >
+        {s.status === "done" && <span className="text-ok mr-1">✓</span>}
+        {s.description || `${s.type.replace("_", " ")} session`}
+      </p>
+      <p className="text-muted-foreground text-xs">
+        {s.muscleGroups.join(", ")} · {s.durationMin} min{s.locked && " · fixed"}
+      </p>
+      <div className="mt-1 flex flex-wrap items-center gap-1">
         {s.status === "planned" ? (
           <>
             <button
@@ -379,7 +457,7 @@ function SessionCard({ session: s, busy, onStatus, onEdit, onDelete }: CardProps
               onClick={() => {
                 onStatus("done");
               }}
-              className="rounded-md bg-emerald-500/40 px-2 py-0.5 text-xs hover:bg-emerald-500/60"
+              className={cn(smallBtn, "border-ok text-ok hover:text-ok")}
             >
               Done
             </button>
@@ -389,7 +467,7 @@ function SessionCard({ session: s, busy, onStatus, onEdit, onDelete }: CardProps
               onClick={() => {
                 onStatus("skipped");
               }}
-              className="rounded-md bg-white/10 px-2 py-0.5 text-xs hover:bg-white/20"
+              className={smallBtn}
             >
               Skip
             </button>
@@ -401,10 +479,30 @@ function SessionCard({ session: s, busy, onStatus, onEdit, onDelete }: CardProps
             onClick={() => {
               onStatus("planned");
             }}
-            className="rounded-md bg-white/10 px-2 py-0.5 text-xs hover:bg-white/20"
+            className={smallBtn}
           >
             Undo {s.status}
           </button>
+        )}
+        {!s.locked && (
+          <span className="ml-auto flex gap-2">
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label="Edit session"
+              className="label text-muted-foreground hover:text-foreground transition-colors"
+            >
+              edit
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label="Delete session"
+              className="label text-muted-foreground hover:text-accent-ink transition-colors"
+            >
+              del
+            </button>
+          </span>
         )}
       </div>
     </article>

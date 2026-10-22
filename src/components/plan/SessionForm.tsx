@@ -20,7 +20,7 @@ interface Props {
 }
 
 const inputClass =
-  "w-full rounded-md border border-white/20 bg-white/10 px-2 py-1 text-sm text-white focus:ring-2 focus:ring-purple-400 focus:outline-none";
+  "w-full border border-border bg-background px-2 py-1.5 text-xs text-foreground transition-colors focus:border-foreground focus:ring-1 focus:ring-foreground focus:outline-none";
 
 export function SessionForm({ initial, onSubmit, onCancel, submitLabel }: Props) {
   const [day, setDay] = useState<Weekday>(initial.day);
@@ -51,10 +51,11 @@ export function SessionForm({ initial, onSubmit, onCancel, submitLabel }: Props)
   return (
     <form
       onSubmit={submit}
-      className="space-y-2 rounded-lg border border-purple-300/40 bg-black/30 p-2"
+      className="border-foreground bg-card flex flex-col gap-2 border p-2"
       data-testid="session-form"
     >
-      <div className="grid grid-cols-2 gap-2">
+      <span className="label text-accent-ink">{initial.id ? "Edit session" : "New session"}</span>
+      <div className="grid grid-cols-2 gap-1.5">
         <select
           aria-label="Day"
           className={inputClass}
@@ -64,7 +65,7 @@ export function SessionForm({ initial, onSubmit, onCancel, submitLabel }: Props)
           }}
         >
           {WEEKDAYS.map((d) => (
-            <option key={d} value={d} className="text-black">
+            <option key={d} value={d}>
               {WEEKDAY_LABELS[d]}
             </option>
           ))}
@@ -78,7 +79,7 @@ export function SessionForm({ initial, onSubmit, onCancel, submitLabel }: Props)
           }}
         >
           {SESSION_TYPES.filter((t) => t !== "team_sport").map((t) => (
-            <option key={t} value={t} className="text-black">
+            <option key={t} value={t}>
               {t}
             </option>
           ))}
@@ -92,7 +93,7 @@ export function SessionForm({ initial, onSubmit, onCancel, submitLabel }: Props)
           }}
         >
           {INTENSITIES.map((i) => (
-            <option key={i} value={i} className="text-black">
+            <option key={i} value={i}>
               {i}
             </option>
           ))}
@@ -115,8 +116,10 @@ export function SessionForm({ initial, onSubmit, onCancel, submitLabel }: Props)
           <label
             key={g}
             className={cn(
-              "cursor-pointer rounded-md border px-2 py-0.5 text-xs",
-              groups.includes(g) ? "border-blue-300 bg-blue-500/30" : "border-white/15 bg-white/5",
+              "label cursor-pointer border px-2 py-1 transition-colors",
+              groups.includes(g)
+                ? "border-foreground bg-surface-2 text-foreground"
+                : "border-border text-muted-foreground hover:text-foreground",
             )}
           >
             <input
@@ -142,22 +145,22 @@ export function SessionForm({ initial, onSubmit, onCancel, submitLabel }: Props)
         placeholder="What exactly will you do?"
       />
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-accent-ink text-xs">
           {error}
         </p>
       )}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <button
           type="submit"
           disabled={busy}
-          className="rounded-md bg-purple-500/70 px-3 py-1 text-xs font-medium hover:bg-purple-500 disabled:opacity-50"
+          className="label border-primary bg-primary border px-3 py-1.5 text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {submitLabel}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-white/20 px-3 py-1 text-xs hover:bg-white/10"
+          className="label border-line-strong text-foreground hover:bg-secondary border px-3 py-1.5 transition-colors"
         >
           Cancel
         </button>

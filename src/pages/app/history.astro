@@ -4,27 +4,58 @@ import { listPlans } from "@/lib/services/plans";
 
 const { supabase, user } = Astro.locals;
 const plans = supabase && user ? await listPlans(supabase, user.id) : [];
+
+const fmt = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" });
+const formatWeek = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) ? iso : fmt.format(d);
+};
 ---
 
 <AppLayout title="History" active="history">
-  <section class="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
-    <h1 class="mb-4 text-2xl font-bold">Past weeks</h1>
+  <section class="corner-marks mx-auto max-w-3xl border border-border">
+    <div class="border-b border-border px-5 py-6 sm:px-6">
+      <span class="label text-accent-ink">Archive</span>
+      <h1 class="mt-2 text-4xl">Past weeks</h1>
+    </div>
     {plans.length === 0 ? (
-      <p class="text-blue-100/70">No weeks yet. Generate your first week to see it here.</p>
+      <p class="px-5 py-10 text-center text-muted-foreground sm:px-6">
+        No weeks yet. Generate your first week to see it here.
+      </p>
     ) : (
-      <ul class="divide-y divide-white/10" data-testid="history-list">
-        {plans.map((p) => {
+      <ul data-testid="history-list">
+        {plans.map((p, i) => {
           const done = p.sessions.filter((s) => s.status === "done").length;
           const skipped = p.sessions.filter((s) => s.status === "skipped").length;
           const planned = p.sessions.length - done - skipped;
           return (
-            <li class="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
-              <span class="font-medium">Week of {p.weekStart}</span>
-              <span class="text-blue-100/70">
-                {done} done · {skipped} skipped · {planned} planned ·{" "}
-                <span class:list={p.valid ? "text-emerald-200" : "text-rose-200"}>
-                  {p.valid ? "valid" : "rule issues"}
+            <li class="grid items-center gap-x-6 gap-y-3 border-b border-border px-5 py-4 last:border-b-0 sm:grid-cols-[140px_1fr_auto] sm:px-6">
+              <div>
+                <span class="font-display text-2xl text-foreground">{formatWeek(p.weekStart)}</span>
+                <span class="label block text-muted-foreground">{i === 0 ? "latest" : `Week of ${p.weekStart}`}</span>
+              </div>
+              <div class="min-w-0">
+                <div class="flex h-2 gap-0.5" aria-hidden="true">
+                  {p.sessions.map((s) => (
+                    <i
+                      class:list={[
+                        "flex-1",
+                        s.status === "done" ? "bg-ok" : s.status === "skipped" ? "bg-primary" : "bg-border",
+                      ]}
+                    />
+                  ))}
+                </div>
+                <span class="label mt-2 block text-muted-foreground">
+                  {done} done · {skipped} skipped · {planned} planned
                 </span>
+              </div>
+              <span
+                class:list={[
+                  "label border px-2 py-1",
+                  p.valid ? "border-ok text-ok" : "border-primary text-accent-ink",
+                ]}
+              >
+                {p.valid ? "valid" : "rule issues"}
               </span>
             </li>
           );

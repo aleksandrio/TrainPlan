@@ -1,0 +1,29 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Topbar from "@/components/Topbar.astro";
+
+interface Props {
+  title: string;
+  eyebrow?: string;
+}
+
+const { title, eyebrow = "Access" } = Astro.props;
+---
+
+<Layout title={`${title} · TrainPlan`}>
+  <div class="flex min-h-screen w-full flex-col bg-background text-foreground">
+    <Topbar />
+    <main class="mx-auto grid w-full max-w-5xl flex-1 border-border md:grid-cols-2 md:border-x">
+      <aside class="bg-grid flex flex-col justify-between gap-10 border-b border-border px-6 py-10 md:border-r md:border-b-0 md:px-10 md:py-14">
+        <span class="label text-accent-ink">{eyebrow}</span>
+        <h2 class="max-w-[16ch] text-4xl sm:text-5xl">Sunday evening. Your week is already planned.</h2>
+        <span class="label text-muted-foreground">Supabase auth · email + password</span>
+      </aside>
+      <section class="px-6 py-10 md:px-10 md:py-14">
+        <div class="mx-auto w-full max-w-sm md:mx-0">
+          <slot />
+        </div>
+      </section>
+    </main>
+  </div>
+</Layout>

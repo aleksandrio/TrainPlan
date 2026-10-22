@@ -8,11 +8,17 @@ const goal = supabase && user ? await getGoal(supabase, user.id) : null;
 ---
 
 <AppLayout title="Your goal" active="goal">
-  <section class="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl sm:p-8">
-    <h1 class="mb-1 text-2xl font-bold">{goal ? "Edit your goal" : "Set your goal"}</h1>
-    <p class="mb-6 text-sm text-blue-100/70">
-      One form. TrainPlan turns it into a week that respects regeneration, your weekly load and your fixed activity.
-    </p>
-    <GoalForm initial={goal} client:load />
+  <section class="corner-marks grid border border-border md:grid-cols-[260px_1fr]">
+    <aside class="flex flex-col gap-4 border-b border-border p-6 md:border-r md:border-b-0">
+      <span class="label text-accent-ink">{goal ? "Edit" : "Step 1 of 1"}</span>
+      <h1 class="text-4xl">{goal ? "Edit your goal" : "Set your goal"}</h1>
+      <p class="text-sm text-muted-foreground">
+        One form. TrainPlan turns it into a week that respects regeneration, your weekly load and your fixed activity.
+      </p>
+      <span class="label mt-auto pt-6 text-muted-foreground">Rules · 48 h regeneration · load cap · light day</span>
+    </aside>
+    <div class="min-w-0">
+      <GoalForm initial={goal} client:load />
+    </div>
   </section>
 </AppLayout>
