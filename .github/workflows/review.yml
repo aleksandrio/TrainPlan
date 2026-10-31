@@ -1,0 +1,74 @@
+# AI code review on every pull request to main (10xDevs M5L3).
+# - comments with the summary (one comment per PR, updated on each run)
+# - labels ai-cr:passed / ai-cr:failed, failing check on "fail"
+# - re-run on demand by adding the ai-cr:review label
+# Make the "review" check required in branch protection to turn the verdict into a merge gate.
+name: AI Code Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write # labels live on the issues API
+
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.action != 'labeled' || github.event.label.name == 'ai-cr:review'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history, otherwise there is no base to diff against
+
+      - name: Compute diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git diff "origin/$BASE_REF...HEAD" -- . ':(exclude)package-lock.json' ':(exclude)**/package-lock.json' > "$RUNNER_TEMP/pr.diff"
+          wc -c "$RUNNER_TEMP/pr.diff"
+
+      - id: review
+        uses: ./.github/actions/ai-reviewer
+        with:
+          api-key: ${{ secrets.LLM_PROVIDER_API_KEY }}
+          pr-title: ${{ github.event.pull_request.title }}
+          pr-body: ${{ github.event.pull_request.body }}
+          diff-file: ${{ runner.temp }}/pr.diff
+
+      - name: Comment and label
+        if: always() && steps.review.outputs.verdict != ''
+        env:
+          VERDICT: ${{ steps.review.outputs.verdict }}
+          COMMENT_FILE: ${{ steps.review.outputs.comment-file }}
+          MARKER: "<!-- ai-code-review -->"
+        run: |
+          { echo "$MARKER"; cat "$COMMENT_FILE"; } > "$RUNNER_TEMP/comment.md"
+          existing=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate --jq ".[] | select(.body | startswith(\"$MARKER\")) | .id" | head -n1)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${existing}" -F body=@"$RUNNER_TEMP/comment.md" > /dev/null
+          else
+            gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md"
+          fi
+          gh label create ai-cr:passed --color 0E8A16 --description "AI review verdict: pass" --force
+          gh label create ai-cr:failed --color B60205 --description "AI review verdict: fail" --force
+          gh label create ai-cr:review --color 1D76DB --description "Add to re-run the AI review" --force
+          if [ "$VERDICT" = pass ]; then add=ai-cr:passed; drop=ai-cr:failed; else add=ai-cr:failed; drop=ai-cr:passed; fi
+          gh pr edit "$PR" --add-label "$add" --remove-label "$drop" || gh pr edit "$PR" --add-label "$add"
+          gh pr edit "$PR" --remove-label ai-cr:review || true
+
+      - name: Gate on verdict
+        env:
+          VERDICT: ${{ steps.review.outputs.verdict }}
+        run: |
+          test "$VERDICT" = pass || { echo "::error::AI review verdict: ${VERDICT:-missing}"; exit 1; }

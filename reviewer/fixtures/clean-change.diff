@@ -1,0 +1,32 @@
+diff --git a/src/lib/rules/weekly-load.ts b/src/lib/rules/weekly-load.ts
+--- a/src/lib/rules/weekly-load.ts
++++ b/src/lib/rules/weekly-load.ts
+@@ -1,12 +1,16 @@
+ import type { Level, Session } from "@/types";
+ 
+ const LIMITS: Record<Level, number> = { beginner: 12, intermediate: 18, advanced: 24 };
+ 
+-/** Weekly load rule: sum of session loads must not exceed the limit for the level. */
++/**
++ * Weekly load rule: sum of session loads must not exceed the limit for the level.
++ * Skipped sessions no longer count towards the load (they were never trained).
++ */
+ export function weeklyLoadViolation(level: Level, sessions: Session[]): string | null {
+-  const total = sessions.reduce((sum, s) => sum + s.load, 0);
++  const total = sessions.filter((s) => s.status !== "skipped").reduce((sum, s) => sum + s.load, 0);
+   const limit = LIMITS[level];
+   return total > limit ? `Weekly load ${total} exceeds the ${limit} limit for ${level}` : null;
+ }
+diff --git a/src/lib/rules/weekly-load.test.ts b/src/lib/rules/weekly-load.test.ts
+--- a/src/lib/rules/weekly-load.test.ts
++++ b/src/lib/rules/weekly-load.test.ts
+@@ -18,4 +18,12 @@ describe("weeklyLoadViolation", () => {
+     expect(weeklyLoadViolation("beginner", sessions(5, 5, 5))).toMatch(/exceeds/);
+   });
++
++  it("ignores skipped sessions", () => {
++    const s = sessions(5, 5, 5);
++    s[0] = { ...s[0], status: "skipped" };
++    expect(weeklyLoadViolation("beginner", s)).toBeNull();
++  });
+ });

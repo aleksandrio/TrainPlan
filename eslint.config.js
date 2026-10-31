@@ -79,7 +79,7 @@ const scriptsConfig = defineConfig({
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath),
-  { ignores: [".claude/**", "context/**", "playwright-report/**", "test-results/**"] },
+  { ignores: [".claude/**", "context/**", "playwright-report/**", "test-results/**", "reviewer/**"] }, // reviewer/ is its own package with its own tsconfig
   baseConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],
