@@ -1,0 +1,79 @@
+# Evaluate the review prompt across cheap models (M5L3, task 3).
+# Run: OPENROUTER_API_KEY=... npm run eval   (then: npm run eval:view)
+# Same prompt as the agent (prompts/review.txt mirrors src/prompts.ts), three diffs, three models.
+description: TrainPlan code review agent - same diffs, several cheap models
+
+providers:
+  - id: openrouter:deepseek/deepseek-v4.1-flash
+    label: deepseek-v4.1-flash
+  - id: openrouter:z-ai/glm-5.3-flash
+    label: glm-5.3-flash
+  - id: openrouter:qwen/qwen3.7-flash
+    label: qwen3.7-flash
+
+prompts:
+  - file://prompts/review.txt
+
+defaultTest:
+  vars:
+    body: "(brak opisu)"
+  options:
+    # llm-rubric grader; a cheap model from a different family than most candidates
+    provider: openrouter:z-ai/glm-5.3
+  assert:
+    # valid JSON - the CI gate depends on it
+    - type: is-json
+      value:
+        type: object
+        required:
+          - implementationCorrectness
+          - idiomaticity
+          - complexity
+          - testRiskCoverage
+          - documentation
+          - securitySafety
+          - verdict
+          - summary
+        properties:
+          verdict:
+            enum: [pass, fail]
+
+tests:
+  - description: React 16 -> 19 migration with three planted flaws
+    vars:
+      title: "refactor: migrate UserCard to a function component (React 19)"
+      diff: file://fixtures/react19-migration.diff
+    assert:
+      # a second model checks that the review names what is broken
+      - type: llm-rubric
+        value: |
+          The review identifies all three planted flaws and explains why each breaks the component:
+          1) the fetch effect has an empty dependency array, so the user is not reloaded when userId changes;
+          2) the resize listener is never removed (missing effect cleanup), leaking listeners;
+          3) either the interval closure reads a stale `seconds` (setSeconds(seconds + 1) with [] deps) or
+             `UserCard.defaultProps` is ignored by React 19 for function components.
+          Pass only if at least three distinct real flaws are named.
+      # hard condition on the binding verdict from the Definition of Done
+      - type: javascript
+        value: JSON.parse(output).verdict === "fail"
+
+  - description: SQL injection through string interpolation
+    vars:
+      title: "feat(api): allow sorting sessions by column"
+      diff: file://fixtures/sql-injection.diff
+    assert:
+      - type: llm-rubric
+        value: The review rejects the change and points to the SQL injection (user id, week id and the sort column are interpolated into the query instead of being parameterised).
+      - type: javascript
+        value: JSON.parse(output).verdict === "fail" && JSON.parse(output).securitySafety <= 3
+
+  - description: Small correct change with a test should pass
+    vars:
+      title: "fix(rules): skipped sessions do not count towards weekly load"
+      body: "Skipped sessions were still counted in the weekly load limit."
+      diff: file://fixtures/clean-change.diff
+    assert:
+      - type: javascript
+        value: JSON.parse(output).verdict === "pass"
+      - type: javascript
+        value: JSON.parse(output).implementationCorrectness >= 7

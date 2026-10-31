@@ -41,6 +41,10 @@ Cloudflare Workers via `npx wrangler deploy`; secrets with `npx wrangler secret 
 
 `/10x-shape` → `/10x-prd` → `/10x-tech-stack-selector` → `/10x-bootstrapper` → `/10x-agents-md` → `/10x-infra-research` → `/10x-roadmap` → per slice `/10x-new` → `/10x-plan` → `/10x-implement` → `/10x-test-plan` → hooks → E2E. Artifacts: `context/foundation/*.md`, `context/changes/<id>/plan.md`.
 
+## AI code review (10xDevs M5)
+
+Every pull request to `main` is reviewed by an LLM agent (`reviewer/`, AI SDK `ToolLoopAgent` + OpenRouter, cheapest structured-output model by default). The workflow `.github/workflows/review.yml` scores six criteria, comments on the PR, sets `ai-cr:passed` / `ai-cr:failed` and fails the check on `fail`; add the `ai-cr:review` label to re-run. Needs the `LLM_PROVIDER_API_KEY` repository secret. Prompt evals across models: `cd reviewer && npm run eval`. Details in `reviewer/README.md`.
+
 ## License
 
 MIT (starter: [10x-astro-starter](https://github.com/przeprogramowani/10x-astro-starter)).

@@ -1,0 +1,27 @@
+diff --git a/src/lib/services/sessions-repo.ts b/src/lib/services/sessions-repo.ts
+--- a/src/lib/services/sessions-repo.ts
++++ b/src/lib/services/sessions-repo.ts
+@@ -12,9 +12,12 @@ export class SessionsRepo {
+   constructor(private readonly sql: (query: string) => Promise<Row[]>) {}
+ 
+-  async findByWeek(userId: string, weekId: string) {
+-    return this.sql(`select * from sessions where user_id = $1 and week_id = $2`, [userId, weekId]);
++  async findByWeek(userId: string, weekId: string, sortBy = "day") {
++    // allow the UI to pass the sort column directly
++    return this.sql(
++      `select * from sessions where user_id = '${userId}' and week_id = '${weekId}' order by ${sortBy}`,
++    );
+   }
+ 
+   async markDone(sessionId: string) {
+diff --git a/src/pages/api/sessions.ts b/src/pages/api/sessions.ts
+--- a/src/pages/api/sessions.ts
++++ b/src/pages/api/sessions.ts
+@@ -5,7 +5,8 @@ export const GET: APIRoute = async ({ url, locals }) => {
+   const weekId = url.searchParams.get("week") ?? "";
++  const sortBy = url.searchParams.get("sort") ?? "day";
+   const repo = new SessionsRepo(locals.sql);
+-  const rows = await repo.findByWeek(locals.user.id, weekId);
++  const rows = await repo.findByWeek(locals.user.id, weekId, sortBy);
+   return new Response(JSON.stringify(rows), { headers: { "content-type": "application/json" } });
+ };

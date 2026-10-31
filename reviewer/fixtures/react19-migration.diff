@@ -1,0 +1,95 @@
+diff --git a/src/components/UserCard.tsx b/src/components/UserCard.tsx
+--- a/src/components/UserCard.tsx
++++ b/src/components/UserCard.tsx
+@@ -1,62 +1,46 @@
+-import React from "react";
++import { useEffect, useState } from "react";
+ import { fetchUser, type User } from "@/lib/api";
+ 
+ interface Props {
+   userId: string;
+   compact?: boolean;
+   onResize?: (width: number) => void;
+ }
+ 
+-interface State {
+-  user: User | null;
+-  seconds: number;
+-}
+-
+-export class UserCard extends React.Component<Props, State> {
+-  static defaultProps = { compact: false };
+-  state: State = { user: null, seconds: 0 };
+-  private timer?: number;
+-
+-  componentDidMount() {
+-    this.load();
+-    window.addEventListener("resize", this.handleResize);
+-    this.timer = window.setInterval(() => this.setState((s) => ({ seconds: s.seconds + 1 })), 1000);
+-  }
+-
+-  componentDidUpdate(prev: Props) {
+-    if (prev.userId !== this.props.userId) this.load();
+-  }
+-
+-  componentWillUnmount() {
+-    window.removeEventListener("resize", this.handleResize);
+-    window.clearInterval(this.timer);
+-  }
+-
+-  handleResize = () => this.props.onResize?.(window.innerWidth);
+-
+-  async load() {
+-    const user = await fetchUser(this.props.userId);
+-    this.setState({ user });
+-  }
+-
+-  render() {
+-    const { user, seconds } = this.state;
+-    if (!user) return <p>Loading…</p>;
+-    return (
+-      <article className={this.props.compact ? "card card--compact" : "card"}>
+-        <h2>{user.name}</h2>
+-        <p>Visible for {seconds}s</p>
+-      </article>
+-    );
+-  }
+-}
++export function UserCard({ userId, compact, onResize }: Props) {
++  const [user, setUser] = useState<User | null>(null);
++  const [seconds, setSeconds] = useState(0);
++
++  useEffect(() => {
++    fetchUser(userId).then(setUser);
++  }, []);
++
++  useEffect(() => {
++    const handleResize = () => onResize?.(window.innerWidth);
++    window.addEventListener("resize", handleResize);
++  }, [onResize]);
++
++  useEffect(() => {
++    const timer = window.setInterval(() => setSeconds(seconds + 1), 1000);
++    return () => window.clearInterval(timer);
++  }, []);
++
++  if (!user) return <p>Loading…</p>;
++  return (
++    <article className={compact ? "card card--compact" : "card"}>
++      <h2>{user.name}</h2>
++      <p>Visible for {seconds}s</p>
++    </article>
++  );
++}
++
++UserCard.defaultProps = { compact: false };
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -10,8 +10,8 @@
+   "dependencies": {
+-    "react": "^16.14.0",
+-    "react-dom": "^16.14.0"
++    "react": "^19.0.0",
++    "react-dom": "^19.0.0"
+   },

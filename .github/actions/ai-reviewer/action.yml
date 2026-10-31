@@ -1,0 +1,83 @@
+# Composite action that runs the team's review agent (reviewer/) on a pull request diff.
+# Builds the reviewer from source so the repository never has to commit dist/.
+# Prints JSON matching reviewer/src/review-schema.ts; the workflow reads `verdict` as the gate.
+name: AI Reviewer
+description: Run the TrainPlan code review agent (AI SDK + OpenRouter) on a pull request diff
+
+inputs:
+  api-key:
+    description: LLM provider API key (OpenRouter)
+    required: true
+  pr-title:
+    description: Pull request title
+    required: true
+  pr-body:
+    description: Pull request description (optional; costs tokens)
+    required: false
+    default: ""
+  diff-file:
+    description: Path to a file with the PR diff (a file avoids step-output size and newline limits)
+    required: true
+  model:
+    description: OpenRouter model id passed to the reviewer
+    required: false
+    default: deepseek/deepseek-v4.1-flash
+  diff-max-chars:
+    description: Cost guard - diffs longer than this are truncated before they reach the model
+    required: false
+    default: "120000"
+  reviewer-dir:
+    description: Path to the reviewer package inside the repository
+    required: false
+    default: reviewer
+
+outputs:
+  verdict:
+    description: Binding pass/fail verdict from the agent
+    value: ${{ steps.agent.outputs.verdict }}
+  review-file:
+    description: Path to the full JSON review
+    value: ${{ steps.agent.outputs.review-file }}
+  comment-file:
+    description: Path to the Markdown comment rendered from the review
+    value: ${{ steps.agent.outputs.comment-file }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: ${{ inputs.reviewer-dir }}/package-lock.json
+
+    - name: Build reviewer
+      shell: bash
+      working-directory: ${{ inputs.reviewer-dir }}
+      run: |
+        npm install -g npm@12
+        npm ci --no-audit --no-fund
+        npm run build
+
+    - name: Run agent
+      id: agent
+      shell: bash
+      working-directory: ${{ inputs.reviewer-dir }}
+      # Untrusted PR text goes through env, never interpolated into the script.
+      env:
+        LLM_PROVIDER_API_KEY: ${{ inputs.api-key }}
+        PR_TITLE: ${{ inputs.pr-title }}
+        PR_BODY: ${{ inputs.pr-body }}
+        DIFF_FILE: ${{ inputs.diff-file }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        DIFF_MAX_CHARS: ${{ inputs.diff-max-chars }}
+      run: |
+        review_file="$RUNNER_TEMP/ai-review.json"
+        comment_file="$RUNNER_TEMP/ai-review.md"
+        node dist/review.js --markdown "$comment_file" > "$review_file"
+        verdict=$(node -e 'const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")); if (!["pass", "fail"].includes(r.verdict)) process.exit(1); console.log(r.verdict)' "$review_file")
+        echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+        echo "review-file=$review_file" >> "$GITHUB_OUTPUT"
+        echo "comment-file=$comment_file" >> "$GITHUB_OUTPUT"
+        echo "### AI Code Review: $verdict" >> "$GITHUB_STEP_SUMMARY"
+        cat "$comment_file" >> "$GITHUB_STEP_SUMMARY"
