@@ -1,4 +1,4 @@
-import type { GoalInput, MuscleGroup, SessionDraft, Violation, Weekday, WeekValidation } from "@/types";
+import type { GoalInput, SessionDraft, Violation, Weekday, WeekValidation } from "@/types";
 import { WEEKDAY_LABELS } from "@/types";
 import { weekLoad, weeklyLimit } from "./load";
 
@@ -32,7 +32,7 @@ export function regenerationViolations(sessions: SessionDraft[]): Violation[] {
         violations.push({
           rule: "regeneration-48h",
           days,
-          message: `48 h regeneration: ${describeGroup(group)} (${label(days[0])} heavy, ${label(days[1])} heavy)`,
+          message: `48 h regeneration: ${group} (${label(days[0])} heavy, ${label(days[1])} heavy)`,
         });
       }
     }
@@ -82,8 +82,4 @@ export function validateWeek(
     limit: weeklyLimit(goal.level),
     violations,
   };
-}
-
-function describeGroup(group: MuscleGroup): string {
-  return group;
 }
