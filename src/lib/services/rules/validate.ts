@@ -1,4 +1,4 @@
-import type { GoalInput, SessionDraft, Violation, Weekday, WeekValidation } from "@/types";
+import type { GoalInput, Level, SessionDraft, Violation, Weekday, WeekValidation } from "@/types";
 import { WEEKDAY_LABELS } from "@/types";
 import { weekLoad, weeklyLimit } from "./load";
 
@@ -42,14 +42,17 @@ export function regenerationViolations(sessions: SessionDraft[]): Violation[] {
 
 /** Rule 2: total weekly load must not exceed the limit for the level. */
 export function loadViolations(sessions: SessionDraft[], goal: Pick<GoalInput, "level">): Violation[] {
-  const load = weekLoad(sessions);
-  const limit = weeklyLimit(goal.level);
+  return overloadViolations(sessions, goal.level, weekLoad(sessions), weeklyLimit(goal.level));
+}
+
+/** Rule 2 on precomputed totals, so `validateWeek` sums the week only once. */
+function overloadViolations(sessions: SessionDraft[], level: Level, load: number, limit: number): Violation[] {
   if (load <= limit) return [];
   return [
     {
       rule: "weekly-load",
       days: activeSessions(sessions).map((s) => s.day),
-      message: `Weekly load ${load} exceeds the ${goal.level} limit of ${limit}`,
+      message: `Weekly load ${load} exceeds the ${level} limit of ${limit}`,
     },
   ];
 }
@@ -71,15 +74,17 @@ export function validateWeek(
   sessions: SessionDraft[],
   goal: Pick<GoalInput, "level" | "fixedCommitment">,
 ): WeekValidation {
+  const load = weekLoad(sessions);
+  const limit = weeklyLimit(goal.level);
   const violations = [
     ...regenerationViolations(sessions),
-    ...loadViolations(sessions, goal),
+    ...overloadViolations(sessions, goal.level, load, limit),
     ...commitmentViolations(sessions, goal),
   ];
   return {
     valid: violations.length === 0,
-    load: weekLoad(sessions),
-    limit: weeklyLimit(goal.level),
+    load,
+    limit,
     violations,
   };
 }
