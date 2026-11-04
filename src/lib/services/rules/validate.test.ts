@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayBefore, validateWeek } from "./validate";
+import { dayBefore, loadViolations, validateWeek } from "./validate";
 import { goalUS01, session, volleyball } from "./fixtures";
 
 describe("validateWeek: US-01 valid week", () => {
@@ -67,6 +67,25 @@ describe("rule: weekly load limit", () => {
     expect(result.violations).toHaveLength(1);
     expect(result.violations[0]).toMatchObject({ rule: "weekly-load" });
     expect(result.violations[0].message).toContain("exceeds the beginner limit of 16");
+  });
+
+  it("accepts a week exactly at the level limit", () => {
+    const week = [session({ day: 1 }), session({ day: 2 }), session({ day: 4 }), session({ day: 6 })];
+    const result = validateWeek(week, { level: "beginner", fixedCommitment: null });
+    expect(result.load).toBe(16);
+    expect(result.limit).toBe(16);
+    expect(result.violations).toEqual([]);
+  });
+
+  it("reports the same violation from loadViolations as from validateWeek", () => {
+    const week = [
+      session({ day: 1, intensity: "heavy", durationMin: 90 }),
+      session({ day: 3, intensity: "heavy", durationMin: 90, muscleGroups: ["push"] }),
+    ];
+    const goal = { level: "beginner", fixedCommitment: null } as const;
+    expect(loadViolations(week, goal)).toEqual(
+      validateWeek(week, goal).violations.filter((v) => v.rule === "weekly-load"),
+    );
   });
 });
 
